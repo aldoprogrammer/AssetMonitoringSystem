@@ -1,0 +1,213 @@
+openapi: 3.0.3
+info:
+  title: AssetMonitoringSystem Identity Service
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+paths:
+  /api/v1/identity/auth/login:
+    post:
+      tags: [Identity]
+      summary: Authenticate a user and return a Passport access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: admin@asset_monitoring_system.local
+                password:
+                  type: string
+                  example: AdminPass123!
+      responses:
+        '200':
+          description: Authenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token_type:
+                    type: string
+                    example: Bearer
+                  access_token:
+                    type: string
+                  user:
+                    $ref: '#/components/schemas/User'
+  /api/v1/identity/users:
+    get:
+      tags: [Identity]
+      summary: List users
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User collection
+    post:
+      tags: [Identity]
+      summary: Create user
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, password, role]
+              properties:
+                employee_id:
+                  type: integer
+                  example: 1
+                name:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                role:
+                  type: string
+                  enum: [admin, staff]
+      responses:
+        '200':
+          description: Created user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserEnvelope'
+  /api/v1/identity/users/{user}:
+    parameters:
+      - name: user
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags: [Identity]
+      summary: Get user
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User detail
+    put:
+      tags: [Identity]
+      summary: Update user
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                role:
+                  type: string
+                  enum: [admin, staff]
+      responses:
+        '200':
+          description: Updated user
+  /api/v1/identity/employees:
+    get:
+      tags: [Identity]
+      summary: List employees
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Employee collection
+    post:
+      tags: [Identity]
+      summary: Create employee
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [employee_code, full_name, department, job_title, email]
+              properties:
+                employee_code:
+                  type: string
+                full_name:
+                  type: string
+                department:
+                  type: string
+                job_title:
+                  type: string
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: Created employee
+  /api/v1/identity/employees/{employee}:
+    parameters:
+      - name: employee
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags: [Identity]
+      summary: Get employee
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Employee detail
+    put:
+      tags: [Identity]
+      summary: Update employee
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Updated employee
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum: [admin, staff]
+    UserEnvelope:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/User'

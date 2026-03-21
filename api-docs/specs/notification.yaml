@@ -1,0 +1,14 @@
+openapi: 3.0.3
+info:
+  title: AssetMonitoringSystem Notification Service
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+paths:
+  /api/v1/notifications/deliveries:
+    get:
+      tags: [Notification]
+      summary: List notification deliveries
+      responses:
+        '200':
+          description: Notification delivery collection

@@ -1,0 +1,561 @@
+services:
+  gateway:
+    image: nginx:1.27-alpine
+    container_name: asset_monitoring_system-gateway
+    depends_on:
+      - identity-service
+      - inventory-service
+      - assignment-service
+      - health-monitor-service
+      - audit-service
+      - notification-service
+    ports:
+      - "8080:80"
+    volumes:
+      - ./gateway/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - asset_monitoring_system
+
+  swagger-ui:
+    image: swaggerapi/swagger-ui:v5.17.14
+    container_name: asset_monitoring_system-swagger-ui
+    depends_on:
+      - gateway
+    environment:
+      SWAGGER_JSON_URL: /specs/index.yaml
+      BASE_URL: /
+    ports:
+      - "8081:8080"
+    volumes:
+      - ./api-docs:/usr/share/nginx/html/specs:ro
+    networks:
+      - asset_monitoring_system
+
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: asset_monitoring_system-rabbitmq
+    hostname: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: asset_monitoring_system
+      RABBITMQ_DEFAULT_PASS: asset_monitoring_system
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - asset_monitoring_system
+
+  identity-db:
+    image: postgres:16-alpine
+    container_name: asset_monitoring_system-identity-db
+    environment:
+      POSTGRES_DB: identity_db
+      POSTGRES_USER: asset_monitoring_system
+      POSTGRES_PASSWORD: asset_monitoring_system
+    ports:
+      - "54321:5432"
+    volumes:
+      - identity_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U asset_monitoring_system -d identity_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - asset_monitoring_system
+
+  inventory-db:
+    image: postgres:16-alpine
+    container_name: asset_monitoring_system-inventory-db
+    environment:
+      POSTGRES_DB: inventory_db
+      POSTGRES_USER: asset_monitoring_system
+      POSTGRES_PASSWORD: asset_monitoring_system
+    ports:
+      - "54322:5432"
+    volumes:
+      - inventory_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U asset_monitoring_system -d inventory_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - asset_monitoring_system
+
+  assignment-db:
+    image: postgres:16-alpine
+    container_name: asset_monitoring_system-assignment-db
+    environment:
+      POSTGRES_DB: assignment_db
+      POSTGRES_USER: asset_monitoring_system
+      POSTGRES_PASSWORD: asset_monitoring_system
+    ports:
+      - "54323:5432"
+    volumes:
+      - assignment_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U asset_monitoring_system -d assignment_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - asset_monitoring_system
+
+  health-monitor-db:
+    image: postgres:16-alpine
+    container_name: asset_monitoring_system-health-monitor-db
+    environment:
+      POSTGRES_DB: health_monitor_db
+      POSTGRES_USER: asset_monitoring_system
+      POSTGRES_PASSWORD: asset_monitoring_system
+    ports:
+      - "54324:5432"
+    volumes:
+      - health_monitor_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U asset_monitoring_system -d health_monitor_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - asset_monitoring_system
+
+  audit-db:
+    image: postgres:16-alpine
+    container_name: asset_monitoring_system-audit-db
+    environment:
+      POSTGRES_DB: audit_db
+      POSTGRES_USER: asset_monitoring_system
+      POSTGRES_PASSWORD: asset_monitoring_system
+    ports:
+      - "54325:5432"
+    volumes:
+      - audit_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U asset_monitoring_system -d audit_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - asset_monitoring_system
+
+  notification-db:
+    image: postgres:16-alpine
+    container_name: asset_monitoring_system-notification-db
+    environment:
+      POSTGRES_DB: notification_db
+      POSTGRES_USER: asset_monitoring_system
+      POSTGRES_PASSWORD: asset_monitoring_system
+    ports:
+      - "54326:5432"
+    volumes:
+      - notification_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U asset_monitoring_system -d notification_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - asset_monitoring_system
+
+  identity-service:
+    build:
+      context: .
+      dockerfile: docker/service.Dockerfile
+      args:
+        SERVICE_DIR: services/identity-service
+    container_name: asset_monitoring_system-identity-service
+    depends_on:
+      identity-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      PASSPORT_ENABLED: "true"
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_URL: http://localhost:8080/api/v1/identity
+      DB_CONNECTION: pgsql
+      DB_HOST: identity-db
+      DB_PORT: 5432
+      DB_DATABASE: identity_db
+      DB_USERNAME: asset_monitoring_system
+      DB_PASSWORD: asset_monitoring_system
+      QUEUE_CONNECTION: sync
+      CACHE_STORE: file
+      LOG_CHANNEL: stack
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: asset_monitoring_system
+      RABBITMQ_PASSWORD: asset_monitoring_system
+      RABBITMQ_VHOST: /
+      RABBITMQ_EXCHANGE: asset_monitoring_system.events
+      RABBITMQ_QUEUE_PREFIX: identity
+    networks:
+      - asset_monitoring_system
+
+  inventory-service:
+    build:
+      context: .
+      dockerfile: docker/service.Dockerfile
+      args:
+        SERVICE_DIR: services/inventory-service
+    container_name: asset_monitoring_system-inventory-service
+    depends_on:
+      inventory-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_URL: http://localhost:8080/api/v1/inventory
+      DB_CONNECTION: pgsql
+      DB_HOST: inventory-db
+      DB_PORT: 5432
+      DB_DATABASE: inventory_db
+      DB_USERNAME: asset_monitoring_system
+      DB_PASSWORD: asset_monitoring_system
+      QUEUE_CONNECTION: sync
+      CACHE_STORE: file
+      LOG_CHANNEL: stack
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: asset_monitoring_system
+      RABBITMQ_PASSWORD: asset_monitoring_system
+      RABBITMQ_VHOST: /
+      RABBITMQ_EXCHANGE: asset_monitoring_system.events
+      RABBITMQ_QUEUE_PREFIX: inventory
+    networks:
+      - asset_monitoring_system
+
+  assignment-service:
+    build:
+      context: .
+      dockerfile: docker/service.Dockerfile
+      args:
+        SERVICE_DIR: services/assignment-service
+    container_name: asset_monitoring_system-assignment-service
+    depends_on:
+      assignment-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      inventory-service:
+        condition: service_started
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_URL: http://localhost:8080/api/v1/assignments
+      DB_CONNECTION: pgsql
+      DB_HOST: assignment-db
+      DB_PORT: 5432
+      DB_DATABASE: assignment_db
+      DB_USERNAME: asset_monitoring_system
+      DB_PASSWORD: asset_monitoring_system
+      QUEUE_CONNECTION: sync
+      CACHE_STORE: file
+      LOG_CHANNEL: stack
+      INVENTORY_SERVICE_BASE_URL: http://inventory-service:8000
+      CIRCUIT_BREAKER_FAILURE_THRESHOLD: 3
+      CIRCUIT_BREAKER_OPEN_SECONDS: 30
+      CIRCUIT_BREAKER_TIMEOUT_SECONDS: 2
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: asset_monitoring_system
+      RABBITMQ_PASSWORD: asset_monitoring_system
+      RABBITMQ_VHOST: /
+      RABBITMQ_EXCHANGE: asset_monitoring_system.events
+      RABBITMQ_QUEUE_PREFIX: assignment
+    networks:
+      - asset_monitoring_system
+
+  assignment-user-sync-worker:
+    profiles: ["workers"]
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: docker/service.Dockerfile
+      args:
+        SERVICE_DIR: services/assignment-service
+    depends_on:
+      assignment-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    command: ["php", "artisan", "assignments:consume-user-sync"]
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      DB_CONNECTION: pgsql
+      DB_HOST: assignment-db
+      DB_PORT: 5432
+      DB_DATABASE: assignment_db
+      DB_USERNAME: asset_monitoring_system
+      DB_PASSWORD: asset_monitoring_system
+      CACHE_STORE: file
+      INVENTORY_SERVICE_BASE_URL: http://inventory-service:8000
+      CIRCUIT_BREAKER_FAILURE_THRESHOLD: 3
+      CIRCUIT_BREAKER_OPEN_SECONDS: 30
+      CIRCUIT_BREAKER_TIMEOUT_SECONDS: 2
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: asset_monitoring_system
+      RABBITMQ_PASSWORD: asset_monitoring_system
+      RABBITMQ_VHOST: /
+      RABBITMQ_EXCHANGE: asset_monitoring_system.events
+      RABBITMQ_QUEUE_PREFIX: assignment
+    networks:
+      - asset_monitoring_system
+
+  health-monitor-service:
+    build:
+      context: .
+      dockerfile: docker/service.Dockerfile
+      args:
+        SERVICE_DIR: services/health-monitor-service
+    container_name: asset_monitoring_system-health-monitor-service
+    depends_on:
+      health-monitor-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_URL: http://localhost:8080/api/v1/health
+      DB_CONNECTION: pgsql
+      DB_HOST: health-monitor-db
+      DB_PORT: 5432
+      DB_DATABASE: health_monitor_db
+      DB_USERNAME: asset_monitoring_system
+      DB_PASSWORD: asset_monitoring_system
+      QUEUE_CONNECTION: sync
+      CACHE_STORE: file
+      LOG_CHANNEL: stack
+      DEVICE_INACTIVE_AFTER_MINUTES: 10
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: asset_monitoring_system
+      RABBITMQ_PASSWORD: asset_monitoring_system
+      RABBITMQ_VHOST: /
+      RABBITMQ_EXCHANGE: asset_monitoring_system.events
+      RABBITMQ_QUEUE_PREFIX: health
+    networks:
+      - asset_monitoring_system
+
+  audit-service:
+    build:
+      context: .
+      dockerfile: docker/service.Dockerfile
+      args:
+        SERVICE_DIR: services/audit-service
+    container_name: asset_monitoring_system-audit-service
+    depends_on:
+      audit-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_URL: http://localhost:8080/api/v1/audit
+      DB_CONNECTION: pgsql
+      DB_HOST: audit-db
+      DB_PORT: 5432
+      DB_DATABASE: audit_db
+      DB_USERNAME: asset_monitoring_system
+      DB_PASSWORD: asset_monitoring_system
+      QUEUE_CONNECTION: sync
+      CACHE_STORE: file
+      LOG_CHANNEL: stack
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: asset_monitoring_system
+      RABBITMQ_PASSWORD: asset_monitoring_system
+      RABBITMQ_VHOST: /
+      RABBITMQ_EXCHANGE: asset_monitoring_system.events
+      RABBITMQ_QUEUE_PREFIX: audit
+    networks:
+      - asset_monitoring_system
+
+  audit-consumer-worker:
+    profiles: ["workers"]
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: docker/service.Dockerfile
+      args:
+        SERVICE_DIR: services/audit-service
+    depends_on:
+      audit-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    command: ["php", "artisan", "audit:consume-events"]
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      DB_CONNECTION: pgsql
+      DB_HOST: audit-db
+      DB_PORT: 5432
+      DB_DATABASE: audit_db
+      DB_USERNAME: asset_monitoring_system
+      DB_PASSWORD: asset_monitoring_system
+      CACHE_STORE: file
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: asset_monitoring_system
+      RABBITMQ_PASSWORD: asset_monitoring_system
+      RABBITMQ_VHOST: /
+      RABBITMQ_EXCHANGE: asset_monitoring_system.events
+      RABBITMQ_QUEUE_PREFIX: audit
+    networks:
+      - asset_monitoring_system
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: docker/service.Dockerfile
+      args:
+        SERVICE_DIR: services/notification-service
+    container_name: asset_monitoring_system-notification-service
+    depends_on:
+      notification-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_URL: http://localhost:8080/api/v1/notifications
+      DB_CONNECTION: pgsql
+      DB_HOST: notification-db
+      DB_PORT: 5432
+      DB_DATABASE: notification_db
+      DB_USERNAME: asset_monitoring_system
+      DB_PASSWORD: asset_monitoring_system
+      QUEUE_CONNECTION: sync
+      CACHE_STORE: file
+      LOG_CHANNEL: stack
+      MAIL_MAILER: smtp
+      MAIL_HOST: mailpit
+      MAIL_PORT: 1025
+      MAIL_FROM_ADDRESS: no-reply@asset_monitoring_system.local
+      MAIL_FROM_NAME: AssetMonitoringSystem
+      SLACK_WEBHOOK_URL: ""
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: asset_monitoring_system
+      RABBITMQ_PASSWORD: asset_monitoring_system
+      RABBITMQ_VHOST: /
+      RABBITMQ_EXCHANGE: asset_monitoring_system.events
+      RABBITMQ_QUEUE_PREFIX: notification
+    networks:
+      - asset_monitoring_system
+
+  notification-consumer-worker:
+    profiles: ["workers"]
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: docker/service.Dockerfile
+      args:
+        SERVICE_DIR: services/notification-service
+    depends_on:
+      notification-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+    command: ["php", "artisan", "notifications:consume-events"]
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      DB_CONNECTION: pgsql
+      DB_HOST: notification-db
+      DB_PORT: 5432
+      DB_DATABASE: notification_db
+      DB_USERNAME: asset_monitoring_system
+      DB_PASSWORD: asset_monitoring_system
+      CACHE_STORE: file
+      MAIL_MAILER: smtp
+      MAIL_HOST: mailpit
+      MAIL_PORT: 1025
+      MAIL_FROM_ADDRESS: no-reply@asset_monitoring_system.local
+      MAIL_FROM_NAME: AssetMonitoringSystem
+      SLACK_WEBHOOK_URL: ""
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: asset_monitoring_system
+      RABBITMQ_PASSWORD: asset_monitoring_system
+      RABBITMQ_VHOST: /
+      RABBITMQ_EXCHANGE: asset_monitoring_system.events
+      RABBITMQ_QUEUE_PREFIX: notification
+    networks:
+      - asset_monitoring_system
+
+  health-monitor-scanner:
+    profiles: ["workers"]
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: docker/service.Dockerfile
+      args:
+        SERVICE_DIR: services/health-monitor-service
+    depends_on:
+      health-monitor-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    command:
+      - sh
+      - -lc
+      - while true; do php artisan health:scan-inactive; sleep 60; done
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      DB_CONNECTION: pgsql
+      DB_HOST: health-monitor-db
+      DB_PORT: 5432
+      DB_DATABASE: health_monitor_db
+      DB_USERNAME: asset_monitoring_system
+      DB_PASSWORD: asset_monitoring_system
+      CACHE_STORE: file
+      DEVICE_INACTIVE_AFTER_MINUTES: 10
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: asset_monitoring_system
+      RABBITMQ_PASSWORD: asset_monitoring_system
+      RABBITMQ_VHOST: /
+      RABBITMQ_EXCHANGE: asset_monitoring_system.events
+      RABBITMQ_QUEUE_PREFIX: health
+    networks:
+      - asset_monitoring_system
+
+  mailpit:
+    image: axllent/mailpit:v1.21
+    container_name: asset_monitoring_system-mailpit
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+    networks:
+      - asset_monitoring_system
+
+volumes:
+  identity_db_data:
+  inventory_db_data:
+  assignment_db_data:
+  health_monitor_db_data:
+  audit_db_data:
+  notification_db_data:
+
+networks:
+  asset_monitoring_system:
+    driver: bridge

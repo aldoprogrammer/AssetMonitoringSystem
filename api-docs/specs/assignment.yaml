@@ -1,0 +1,46 @@
+openapi: 3.0.3
+info:
+  title: AssetMonitoringSystem Assignment Service
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+paths:
+  /api/v1/assignments:
+    get:
+      tags: [Assignment]
+      summary: List assignments
+      responses:
+        '200':
+          description: Assignment collection
+  /api/v1/assignments/checkout:
+    post:
+      tags: [Assignment]
+      summary: Check out an asset to a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [user_id, asset_serial_number]
+              properties:
+                user_id:
+                  type: integer
+                asset_serial_number:
+                  type: string
+      responses:
+        '200':
+          description: Checked out assignment
+  /api/v1/assignments/{assignment}/checkin:
+    parameters:
+      - name: assignment
+        in: path
+        required: true
+        schema:
+          type: integer
+    post:
+      tags: [Assignment]
+      summary: Check in an assigned asset
+      responses:
+        '200':
+          description: Checked in assignment

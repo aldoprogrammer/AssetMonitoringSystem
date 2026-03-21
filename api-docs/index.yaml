@@ -1,0 +1,50 @@
+openapi: 3.0.3
+info:
+  title: AssetMonitoringSystem API Catalog
+  version: 1.0.0
+  description: Unified Swagger entrypoint for AssetMonitoringSystem microservices.
+servers:
+  - url: http://localhost:8080
+    description: Local API Gateway
+tags:
+  - name: Identity
+  - name: Inventory
+  - name: Assignment
+  - name: Health
+  - name: Audit
+  - name: Notification
+paths:
+  /api/v1/identity/auth/login:
+    $ref: ./specs/identity.yaml#/paths/~1api~1v1~1identity~1auth~1login
+  /api/v1/identity/users:
+    $ref: ./specs/identity.yaml#/paths/~1api~1v1~1identity~1users
+  /api/v1/identity/users/{user}:
+    $ref: ./specs/identity.yaml#/paths/~1api~1v1~1identity~1users~1{user}
+  /api/v1/identity/employees:
+    $ref: ./specs/identity.yaml#/paths/~1api~1v1~1identity~1employees
+  /api/v1/identity/employees/{employee}:
+    $ref: ./specs/identity.yaml#/paths/~1api~1v1~1identity~1employees~1{employee}
+  /api/v1/inventory/assets:
+    $ref: ./specs/inventory.yaml#/paths/~1api~1v1~1inventory~1assets
+  /api/v1/inventory/assets/{asset}:
+    $ref: ./specs/inventory.yaml#/paths/~1api~1v1~1inventory~1assets~1{asset}
+  /api/v1/inventory/assets/serial/{serialNumber}/status:
+    $ref: ./specs/inventory.yaml#/paths/~1api~1v1~1inventory~1assets~1serial~1{serialNumber}~1status
+  /api/v1/assignments:
+    $ref: ./specs/assignment.yaml#/paths/~1api~1v1~1assignments
+  /api/v1/assignments/checkout:
+    $ref: ./specs/assignment.yaml#/paths/~1api~1v1~1assignments~1checkout
+  /api/v1/assignments/{assignment}/checkin:
+    $ref: ./specs/assignment.yaml#/paths/~1api~1v1~1assignments~1{assignment}~1checkin
+  /api/v1/health/heartbeats:
+    $ref: ./specs/health.yaml#/paths/~1api~1v1~1health~1heartbeats
+  /api/v1/audit/logs:
+    $ref: ./specs/audit.yaml#/paths/~1api~1v1~1audit~1logs
+  /api/v1/notifications/deliveries:
+    $ref: ./specs/notification.yaml#/paths/~1api~1v1~1notifications~1deliveries
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

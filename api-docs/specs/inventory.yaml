@@ -1,0 +1,76 @@
+openapi: 3.0.3
+info:
+  title: AssetMonitoringSystem Inventory Service
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+paths:
+  /api/v1/inventory/assets:
+    get:
+      tags: [Inventory]
+      summary: List assets
+      responses:
+        '200':
+          description: Asset collection
+    post:
+      tags: [Inventory]
+      summary: Create asset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [serial_number, asset_tag, specs, status]
+              properties:
+                serial_number:
+                  type: string
+                asset_tag:
+                  type: string
+                specs:
+                  type: object
+                  additionalProperties: true
+                status:
+                  type: string
+                  enum: [available, assigned, maintenance, retired]
+      responses:
+        '200':
+          description: Created asset
+  /api/v1/inventory/assets/{asset}:
+    parameters:
+      - name: asset
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags: [Inventory]
+      summary: Get asset
+      responses:
+        '200':
+          description: Asset detail
+    put:
+      tags: [Inventory]
+      summary: Update asset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Updated asset
+  /api/v1/inventory/assets/serial/{serialNumber}/status:
+    parameters:
+      - name: serialNumber
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags: [Inventory]
+      summary: Validate asset availability by serial number
+      responses:
+        '200':
+          description: Asset availability

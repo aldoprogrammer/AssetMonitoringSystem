@@ -1,0 +1,10 @@
+aws_region            = "ap-southeast-1"
+project_name          = "assetmonitoringsystem"
+environment           = "dev"
+vpc_id                = "vpc-xxxxxxxx"
+private_subnet_ids    = ["subnet-aaaaaaaa", "subnet-bbbbbbbb"]
+db_security_group_ids = ["sg-db123456"]
+mq_security_group_ids = ["sg-mq123456"]
+db_master_password    = "replace-me"
+mq_password           = "replace-me"
+alarm_topic_arn       = "arn:aws:sns:ap-southeast-1:123456789012:asset-monitoring-system-alerts"

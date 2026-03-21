@@ -1,0 +1,14 @@
+openapi: 3.0.3
+info:
+  title: AssetMonitoringSystem Audit Service
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+paths:
+  /api/v1/audit/logs:
+    get:
+      tags: [Audit]
+      summary: List centralized audit logs
+      responses:
+        '200':
+          description: Audit log collection

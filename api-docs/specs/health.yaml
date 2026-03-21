@@ -1,0 +1,27 @@
+openapi: 3.0.3
+info:
+  title: AssetMonitoringSystem Health Monitor Service
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+paths:
+  /api/v1/health/heartbeats:
+    post:
+      tags: [Health]
+      summary: Ingest a device heartbeat
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [device_serial_number]
+              properties:
+                device_serial_number:
+                  type: string
+                metadata:
+                  type: object
+                  additionalProperties: true
+      responses:
+        '200':
+          description: Heartbeat stored
