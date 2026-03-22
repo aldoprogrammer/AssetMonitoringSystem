@@ -1,0 +1,36 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: asset-monitoring-system
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+resources:
+  - namespace.yaml
+  - secret.yaml
+  - rabbitmq.yaml
+  - mailpit.yaml
+  - postgres.yaml
+  - identity-storage.yaml
+  - api-services-core.yaml
+  - api-services-observability.yaml
+  - workers.yaml
+  - gateway.yaml
+  - swagger-ui.yaml
+  - ingress.yaml
+  - jobs.yaml
+
+configMapGenerator:
+  - name: gateway-nginx
+    files:
+      - nginx.conf=files/nginx.conf
+  - name: swagger-specs
+    files:
+      - index.yaml=files/swagger-specs/index.yaml
+      - identity.yaml=files/swagger-specs/identity.yaml
+      - inventory.yaml=files/swagger-specs/inventory.yaml
+      - assignment.yaml=files/swagger-specs/assignment.yaml
+      - health.yaml=files/swagger-specs/health.yaml
+      - audit.yaml=files/swagger-specs/audit.yaml
+      - notification.yaml=files/swagger-specs/notification.yaml

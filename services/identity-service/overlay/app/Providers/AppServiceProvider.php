@@ -7,6 +7,7 @@ use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Repositories\Eloquent\EmployeeRepository;
 use App\Repositories\Eloquent\UserRepository;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Telescope\TelescopeServiceProvider as LaravelTelescopeServiceProvider;
 use Laravel\Passport\Passport;
 
 class AppServiceProvider extends ServiceProvider
@@ -15,10 +16,22 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->bind(UserRepositoryInterface::class, UserRepository::class);
         $this->app->bind(EmployeeRepositoryInterface::class, EmployeeRepository::class);
+
+        $this->registerTelescope();
     }
 
     public function boot(): void
     {
         Passport::tokensExpireIn(now()->addHours(12));
+    }
+
+    private function registerTelescope(): void
+    {
+        if (! $this->app->environment('local') || ! class_exists(LaravelTelescopeServiceProvider::class)) {
+            return;
+        }
+
+        $this->app->register(LaravelTelescopeServiceProvider::class);
+        $this->app->register(TelescopeServiceProvider::class);
     }
 }

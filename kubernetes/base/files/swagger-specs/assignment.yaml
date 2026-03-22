@@ -1,0 +1,170 @@
+openapi: 3.0.3
+info:
+  title: AssetMonitoringSystem Assignment Service
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+paths:
+  /api/v1/assignments:
+    get:
+      tags: [Assignment]
+      summary: List assignments
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: Page number for paginated results.
+          schema:
+            type: integer
+            minimum: 1
+            example: 1
+        - name: per_page
+          in: query
+          description: Optional page size. The backend currently defaults to 15 items.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            example: 15
+      responses:
+        '200':
+          description: Assignment collection
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssignmentCollectionResponse'
+  /api/v1/assignments/checkout:
+    post:
+      tags: [Assignment]
+      summary: Check out an asset to a user
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [user_id, asset_serial_number]
+              properties:
+                user_id:
+                  type: string
+                  format: uuid
+                  example: ffc799f0-1afa-4c65-93fd-de1b96e6205d
+                asset_serial_number:
+                  type: string
+                  example: LAP-1001
+      responses:
+        '200':
+          description: Checked out assignment
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssignmentEnvelope'
+  /api/v1/assignments/{assignment}/checkin:
+    post:
+      tags: [Assignment]
+      summary: Check in an assigned asset
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: assignment
+          in: path
+          required: true
+          description: Public assignment UUID returned by the API.
+          schema:
+            type: string
+            format: uuid
+            example: 6bbfbe85-1f3a-4977-b8fe-d28d2d2ea385
+      responses:
+        '200':
+          description: Checked in assignment
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssignmentEnvelope'
+components:
+  schemas:
+    PaginationLinks:
+      type: object
+      properties:
+        first:
+          type: string
+          nullable: true
+        last:
+          type: string
+          nullable: true
+        prev:
+          type: string
+          nullable: true
+        next:
+          type: string
+          nullable: true
+    PaginationMeta:
+      type: object
+      properties:
+        current_page:
+          type: integer
+        from:
+          type: integer
+          nullable: true
+        last_page:
+          type: integer
+        path:
+          type: string
+        per_page:
+          type: integer
+        to:
+          type: integer
+          nullable: true
+        total:
+          type: integer
+    Assignment:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        user_id:
+          type: string
+          format: uuid
+        user_email:
+          type: string
+          format: email
+        asset_serial_number:
+          type: string
+        status:
+          type: string
+          enum: [checked_out, checked_in]
+        checked_out_at:
+          type: string
+          format: date-time
+          nullable: true
+        checked_in_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    AssignmentEnvelope:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/Assignment'
+    AssignmentCollectionResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Assignment'
+        links:
+          $ref: '#/components/schemas/PaginationLinks'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'

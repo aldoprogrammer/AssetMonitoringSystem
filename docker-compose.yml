@@ -190,6 +190,7 @@ services:
       DB_PASSWORD: asset_monitoring_system
       QUEUE_CONNECTION: sync
       CACHE_STORE: file
+      SESSION_DRIVER: file
       LOG_CHANNEL: stack
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_PORT: 5672
@@ -198,6 +199,9 @@ services:
       RABBITMQ_VHOST: /
       RABBITMQ_EXCHANGE: asset_monitoring_system.events
       RABBITMQ_QUEUE_PREFIX: identity
+      TELESCOPE_ENABLED: "true"
+      TELESCOPE_PATH: identity/telescope
+      TELESCOPE_SERVICE_NAME: identity-service
     networks:
       - asset_monitoring_system
 
@@ -225,6 +229,7 @@ services:
       DB_PASSWORD: asset_monitoring_system
       QUEUE_CONNECTION: sync
       CACHE_STORE: file
+      SESSION_DRIVER: file
       LOG_CHANNEL: stack
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_PORT: 5672
@@ -233,6 +238,9 @@ services:
       RABBITMQ_VHOST: /
       RABBITMQ_EXCHANGE: asset_monitoring_system.events
       RABBITMQ_QUEUE_PREFIX: inventory
+      TELESCOPE_ENABLED: "true"
+      TELESCOPE_PATH: inventory/telescope
+      TELESCOPE_SERVICE_NAME: inventory-service
     networks:
       - asset_monitoring_system
 
@@ -262,6 +270,7 @@ services:
       DB_PASSWORD: asset_monitoring_system
       QUEUE_CONNECTION: sync
       CACHE_STORE: file
+      SESSION_DRIVER: file
       LOG_CHANNEL: stack
       INVENTORY_SERVICE_BASE_URL: http://inventory-service:8000
       CIRCUIT_BREAKER_FAILURE_THRESHOLD: 3
@@ -274,6 +283,9 @@ services:
       RABBITMQ_VHOST: /
       RABBITMQ_EXCHANGE: asset_monitoring_system.events
       RABBITMQ_QUEUE_PREFIX: assignment
+      TELESCOPE_ENABLED: "true"
+      TELESCOPE_PATH: assignments/telescope
+      TELESCOPE_SERVICE_NAME: assignment-service
     networks:
       - asset_monitoring_system
 
@@ -314,6 +326,8 @@ services:
       RABBITMQ_VHOST: /
       RABBITMQ_EXCHANGE: asset_monitoring_system.events
       RABBITMQ_QUEUE_PREFIX: assignment
+      TELESCOPE_ENABLED: "true"
+      TELESCOPE_SERVICE_NAME: assignment-service
     networks:
       - asset_monitoring_system
 
@@ -341,6 +355,7 @@ services:
       DB_PASSWORD: asset_monitoring_system
       QUEUE_CONNECTION: sync
       CACHE_STORE: file
+      SESSION_DRIVER: file
       LOG_CHANNEL: stack
       DEVICE_INACTIVE_AFTER_MINUTES: 10
       RABBITMQ_HOST: rabbitmq
@@ -350,6 +365,9 @@ services:
       RABBITMQ_VHOST: /
       RABBITMQ_EXCHANGE: asset_monitoring_system.events
       RABBITMQ_QUEUE_PREFIX: health
+      TELESCOPE_ENABLED: "true"
+      TELESCOPE_PATH: health/telescope
+      TELESCOPE_SERVICE_NAME: health-monitor-service
     networks:
       - asset_monitoring_system
 
@@ -377,6 +395,7 @@ services:
       DB_PASSWORD: asset_monitoring_system
       QUEUE_CONNECTION: sync
       CACHE_STORE: file
+      SESSION_DRIVER: file
       LOG_CHANNEL: stack
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_PORT: 5672
@@ -385,6 +404,9 @@ services:
       RABBITMQ_VHOST: /
       RABBITMQ_EXCHANGE: asset_monitoring_system.events
       RABBITMQ_QUEUE_PREFIX: audit
+      TELESCOPE_ENABLED: "true"
+      TELESCOPE_PATH: audit/telescope
+      TELESCOPE_SERVICE_NAME: audit-service
     networks:
       - asset_monitoring_system
 
@@ -421,6 +443,8 @@ services:
       RABBITMQ_VHOST: /
       RABBITMQ_EXCHANGE: asset_monitoring_system.events
       RABBITMQ_QUEUE_PREFIX: audit
+      TELESCOPE_ENABLED: "true"
+      TELESCOPE_SERVICE_NAME: audit-service
     networks:
       - asset_monitoring_system
 
@@ -448,6 +472,7 @@ services:
       DB_PASSWORD: asset_monitoring_system
       QUEUE_CONNECTION: sync
       CACHE_STORE: file
+      SESSION_DRIVER: file
       LOG_CHANNEL: stack
       MAIL_MAILER: smtp
       MAIL_HOST: mailpit
@@ -462,6 +487,9 @@ services:
       RABBITMQ_VHOST: /
       RABBITMQ_EXCHANGE: asset_monitoring_system.events
       RABBITMQ_QUEUE_PREFIX: notification
+      TELESCOPE_ENABLED: "true"
+      TELESCOPE_PATH: notifications/telescope
+      TELESCOPE_SERVICE_NAME: notification-service
     networks:
       - asset_monitoring_system
 
@@ -506,6 +534,8 @@ services:
       RABBITMQ_VHOST: /
       RABBITMQ_EXCHANGE: asset_monitoring_system.events
       RABBITMQ_QUEUE_PREFIX: notification
+      TELESCOPE_ENABLED: "true"
+      TELESCOPE_SERVICE_NAME: notification-service
     networks:
       - asset_monitoring_system
 
@@ -546,6 +576,8 @@ services:
       RABBITMQ_VHOST: /
       RABBITMQ_EXCHANGE: asset_monitoring_system.events
       RABBITMQ_QUEUE_PREFIX: health
+      TELESCOPE_ENABLED: "true"
+      TELESCOPE_SERVICE_NAME: health-monitor-service
     networks:
       - asset_monitoring_system
 

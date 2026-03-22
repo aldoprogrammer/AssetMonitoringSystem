@@ -1,0 +1,261 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: identity-service
+spec:
+  selector:
+    app: identity-service
+  ports:
+    - name: http
+      port: 8000
+      targetPort: 8000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: identity-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: identity-service
+  template:
+    metadata:
+      labels:
+        app: identity-service
+    spec:
+      initContainers:
+        - name: prepare-identity-storage
+          image: asset_monitoring_system-identity-service:latest
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -lc
+            - mkdir -p /var/www/app/storage/framework/cache /var/www/app/storage/framework/sessions /var/www/app/storage/framework/views /var/www/app/storage/logs
+          volumeMounts:
+            - name: identity-storage
+              mountPath: /var/www/app/storage
+        - name: wait-for-identity-db
+          image: asset_monitoring_system-identity-service:latest
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-lc", "until php -r '$s=@fsockopen(\"identity-db\",5432); if ($s) { fclose($s); exit(0);} exit(1);'; do echo waiting for identity-db; sleep 2; done"]
+        - name: wait-for-rabbitmq
+          image: asset_monitoring_system-identity-service:latest
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-lc", "until php -r '$s=@fsockopen(\"rabbitmq\",5672); if ($s) { fclose($s); exit(0);} exit(1);'; do echo waiting for rabbitmq; sleep 2; done"]
+      containers:
+        - name: identity-service
+          image: asset_monitoring_system-identity-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          env:
+            - {name: PASSPORT_ENABLED, value: "true"}
+            - {name: APP_ENV, value: local}
+            - {name: APP_DEBUG, value: "true"}
+            - {name: APP_URL, value: http://api.asset-monitoring-system.local/api/v1/identity}
+            - {name: DB_CONNECTION, value: pgsql}
+            - {name: DB_HOST, value: identity-db}
+            - {name: DB_PORT, value: "5432"}
+            - {name: DB_DATABASE, value: identity_db}
+            - name: DB_USERNAME
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: db-username}}
+            - name: DB_PASSWORD
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: db-password}}
+            - {name: QUEUE_CONNECTION, value: sync}
+            - {name: CACHE_STORE, value: file}
+            - {name: SESSION_DRIVER, value: file}
+            - {name: LOG_CHANNEL, value: stack}
+            - {name: RABBITMQ_HOST, value: rabbitmq}
+            - {name: RABBITMQ_PORT, value: "5672"}
+            - name: RABBITMQ_USER
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: rabbitmq-user}}
+            - name: RABBITMQ_PASSWORD
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: rabbitmq-password}}
+            - name: RABBITMQ_VHOST
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: rabbitmq-vhost}}
+            - name: RABBITMQ_EXCHANGE
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: rabbitmq-exchange}}
+            - {name: RABBITMQ_QUEUE_PREFIX, value: identity}
+            - {name: TELESCOPE_ENABLED, value: "true"}
+            - {name: TELESCOPE_PATH, value: identity/telescope}
+            - {name: TELESCOPE_SERVICE_NAME, value: identity-service}
+          volumeMounts:
+            - name: identity-storage
+              mountPath: /var/www/app/storage
+          readinessProbe:
+            httpGet: {path: /up, port: 8000}
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: {path: /up, port: 8000}
+            initialDelaySeconds: 30
+            periodSeconds: 20
+      volumes:
+        - name: identity-storage
+          persistentVolumeClaim:
+            claimName: identity-storage
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: inventory-service
+spec:
+  selector:
+    app: inventory-service
+  ports:
+    - name: http
+      port: 8000
+      targetPort: 8000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inventory-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: inventory-service
+  template:
+    metadata:
+      labels:
+        app: inventory-service
+    spec:
+      initContainers:
+        - name: wait-for-inventory-db
+          image: asset_monitoring_system-inventory-service:latest
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-lc", "until php -r '$s=@fsockopen(\"inventory-db\",5432); if ($s) { fclose($s); exit(0);} exit(1);'; do echo waiting for inventory-db; sleep 2; done"]
+        - name: wait-for-rabbitmq
+          image: asset_monitoring_system-inventory-service:latest
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-lc", "until php -r '$s=@fsockopen(\"rabbitmq\",5672); if ($s) { fclose($s); exit(0);} exit(1);'; do echo waiting for rabbitmq; sleep 2; done"]
+      containers:
+        - name: inventory-service
+          image: asset_monitoring_system-inventory-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          env:
+            - {name: APP_ENV, value: local}
+            - {name: APP_DEBUG, value: "true"}
+            - {name: APP_URL, value: http://api.asset-monitoring-system.local/api/v1/inventory}
+            - {name: DB_CONNECTION, value: pgsql}
+            - {name: DB_HOST, value: inventory-db}
+            - {name: DB_PORT, value: "5432"}
+            - {name: DB_DATABASE, value: inventory_db}
+            - name: DB_USERNAME
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: db-username}}
+            - name: DB_PASSWORD
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: db-password}}
+            - {name: QUEUE_CONNECTION, value: sync}
+            - {name: CACHE_STORE, value: file}
+            - {name: SESSION_DRIVER, value: file}
+            - {name: LOG_CHANNEL, value: stack}
+            - {name: RABBITMQ_HOST, value: rabbitmq}
+            - {name: RABBITMQ_PORT, value: "5672"}
+            - name: RABBITMQ_USER
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: rabbitmq-user}}
+            - name: RABBITMQ_PASSWORD
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: rabbitmq-password}}
+            - name: RABBITMQ_VHOST
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: rabbitmq-vhost}}
+            - name: RABBITMQ_EXCHANGE
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: rabbitmq-exchange}}
+            - {name: RABBITMQ_QUEUE_PREFIX, value: inventory}
+            - {name: TELESCOPE_ENABLED, value: "true"}
+            - {name: TELESCOPE_PATH, value: inventory/telescope}
+            - {name: TELESCOPE_SERVICE_NAME, value: inventory-service}
+          readinessProbe:
+            httpGet: {path: /up, port: 8000}
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: {path: /up, port: 8000}
+            initialDelaySeconds: 30
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: assignment-service
+spec:
+  selector:
+    app: assignment-service
+  ports:
+    - name: http
+      port: 8000
+      targetPort: 8000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: assignment-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: assignment-service
+  template:
+    metadata:
+      labels:
+        app: assignment-service
+    spec:
+      initContainers:
+        - name: wait-for-assignment-db
+          image: asset_monitoring_system-assignment-service:latest
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-lc", "until php -r '$s=@fsockopen(\"assignment-db\",5432); if ($s) { fclose($s); exit(0);} exit(1);'; do echo waiting for assignment-db; sleep 2; done"]
+        - name: wait-for-rabbitmq
+          image: asset_monitoring_system-assignment-service:latest
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-lc", "until php -r '$s=@fsockopen(\"rabbitmq\",5672); if ($s) { fclose($s); exit(0);} exit(1);'; do echo waiting for rabbitmq; sleep 2; done"]
+      containers:
+        - name: assignment-service
+          image: asset_monitoring_system-assignment-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          env:
+            - {name: APP_ENV, value: local}
+            - {name: APP_DEBUG, value: "true"}
+            - {name: APP_URL, value: http://api.asset-monitoring-system.local/api/v1/assignments}
+            - {name: DB_CONNECTION, value: pgsql}
+            - {name: DB_HOST, value: assignment-db}
+            - {name: DB_PORT, value: "5432"}
+            - {name: DB_DATABASE, value: assignment_db}
+            - name: DB_USERNAME
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: db-username}}
+            - name: DB_PASSWORD
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: db-password}}
+            - {name: QUEUE_CONNECTION, value: sync}
+            - {name: CACHE_STORE, value: file}
+            - {name: SESSION_DRIVER, value: file}
+            - {name: LOG_CHANNEL, value: stack}
+            - {name: INVENTORY_SERVICE_BASE_URL, value: http://inventory-service:8000}
+            - {name: CIRCUIT_BREAKER_FAILURE_THRESHOLD, value: "3"}
+            - {name: CIRCUIT_BREAKER_OPEN_SECONDS, value: "30"}
+            - {name: CIRCUIT_BREAKER_TIMEOUT_SECONDS, value: "2"}
+            - {name: RABBITMQ_HOST, value: rabbitmq}
+            - {name: RABBITMQ_PORT, value: "5672"}
+            - name: RABBITMQ_USER
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: rabbitmq-user}}
+            - name: RABBITMQ_PASSWORD
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: rabbitmq-password}}
+            - name: RABBITMQ_VHOST
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: rabbitmq-vhost}}
+            - name: RABBITMQ_EXCHANGE
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: rabbitmq-exchange}}
+            - {name: RABBITMQ_QUEUE_PREFIX, value: assignment}
+            - {name: TELESCOPE_ENABLED, value: "true"}
+            - {name: TELESCOPE_PATH, value: assignments/telescope}
+            - {name: TELESCOPE_SERVICE_NAME, value: assignment-service}
+          readinessProbe:
+            httpGet: {path: /up, port: 8000}
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: {path: /up, port: 8000}
+            initialDelaySeconds: 30
+            periodSeconds: 20

@@ -1,0 +1,235 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: assignment-user-sync-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: assignment-user-sync-worker
+  template:
+    metadata:
+      labels:
+        app: assignment-user-sync-worker
+    spec:
+      initContainers:
+        - name: wait-for-assignment-db
+          image: asset_monitoring_system-assignment-user-sync-worker:latest
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-lc", "until php -r '$s=@fsockopen(\"assignment-db\",5432); if ($s) { fclose($s); exit(0);} exit(1);'; do echo waiting for assignment-db; sleep 2; done"]
+        - name: wait-for-rabbitmq
+          image: asset_monitoring_system-assignment-user-sync-worker:latest
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-lc", "until php -r '$s=@fsockopen(\"rabbitmq\",5672); if ($s) { fclose($s); exit(0);} exit(1);'; do echo waiting for rabbitmq; sleep 2; done"]
+      containers:
+        - name: assignment-user-sync-worker
+          image: asset_monitoring_system-assignment-user-sync-worker:latest
+          imagePullPolicy: IfNotPresent
+          command: ["php", "artisan", "assignments:consume-user-sync"]
+          env:
+            - {name: APP_ENV, value: local}
+            - {name: APP_DEBUG, value: "true"}
+            - {name: DB_CONNECTION, value: pgsql}
+            - {name: DB_HOST, value: assignment-db}
+            - {name: DB_PORT, value: "5432"}
+            - {name: DB_DATABASE, value: assignment_db}
+            - name: DB_USERNAME
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: db-username}}
+            - name: DB_PASSWORD
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: db-password}}
+            - {name: CACHE_STORE, value: file}
+            - {name: INVENTORY_SERVICE_BASE_URL, value: http://inventory-service:8000}
+            - {name: CIRCUIT_BREAKER_FAILURE_THRESHOLD, value: "3"}
+            - {name: CIRCUIT_BREAKER_OPEN_SECONDS, value: "30"}
+            - {name: CIRCUIT_BREAKER_TIMEOUT_SECONDS, value: "2"}
+            - {name: RABBITMQ_HOST, value: rabbitmq}
+            - {name: RABBITMQ_PORT, value: "5672"}
+            - name: RABBITMQ_USER
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: rabbitmq-user}}
+            - name: RABBITMQ_PASSWORD
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: rabbitmq-password}}
+            - name: RABBITMQ_VHOST
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: rabbitmq-vhost}}
+            - name: RABBITMQ_EXCHANGE
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: rabbitmq-exchange}}
+            - {name: RABBITMQ_QUEUE_PREFIX, value: assignment}
+            - {name: TELESCOPE_ENABLED, value: "true"}
+            - {name: TELESCOPE_SERVICE_NAME, value: assignment-service}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: audit-consumer-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: audit-consumer-worker
+  template:
+    metadata:
+      labels:
+        app: audit-consumer-worker
+    spec:
+      initContainers:
+        - name: wait-for-audit-db
+          image: asset_monitoring_system-audit-consumer-worker:latest
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-lc", "until php -r '$s=@fsockopen(\"audit-db\",5432); if ($s) { fclose($s); exit(0);} exit(1);'; do echo waiting for audit-db; sleep 2; done"]
+        - name: wait-for-rabbitmq
+          image: asset_monitoring_system-audit-consumer-worker:latest
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-lc", "until php -r '$s=@fsockopen(\"rabbitmq\",5672); if ($s) { fclose($s); exit(0);} exit(1);'; do echo waiting for rabbitmq; sleep 2; done"]
+      containers:
+        - name: audit-consumer-worker
+          image: asset_monitoring_system-audit-consumer-worker:latest
+          imagePullPolicy: IfNotPresent
+          command: ["php", "artisan", "audit:consume-events"]
+          env:
+            - {name: APP_ENV, value: local}
+            - {name: APP_DEBUG, value: "true"}
+            - {name: DB_CONNECTION, value: pgsql}
+            - {name: DB_HOST, value: audit-db}
+            - {name: DB_PORT, value: "5432"}
+            - {name: DB_DATABASE, value: audit_db}
+            - name: DB_USERNAME
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: db-username}}
+            - name: DB_PASSWORD
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: db-password}}
+            - {name: CACHE_STORE, value: file}
+            - {name: RABBITMQ_HOST, value: rabbitmq}
+            - {name: RABBITMQ_PORT, value: "5672"}
+            - name: RABBITMQ_USER
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: rabbitmq-user}}
+            - name: RABBITMQ_PASSWORD
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: rabbitmq-password}}
+            - name: RABBITMQ_VHOST
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: rabbitmq-vhost}}
+            - name: RABBITMQ_EXCHANGE
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: rabbitmq-exchange}}
+            - {name: RABBITMQ_QUEUE_PREFIX, value: audit}
+            - {name: TELESCOPE_ENABLED, value: "true"}
+            - {name: TELESCOPE_SERVICE_NAME, value: audit-service}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-consumer-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notification-consumer-worker
+  template:
+    metadata:
+      labels:
+        app: notification-consumer-worker
+    spec:
+      initContainers:
+        - name: wait-for-notification-db
+          image: asset_monitoring_system-notification-consumer-worker:latest
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-lc", "until php -r '$s=@fsockopen(\"notification-db\",5432); if ($s) { fclose($s); exit(0);} exit(1);'; do echo waiting for notification-db; sleep 2; done"]
+        - name: wait-for-rabbitmq
+          image: asset_monitoring_system-notification-consumer-worker:latest
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-lc", "until php -r '$s=@fsockopen(\"rabbitmq\",5672); if ($s) { fclose($s); exit(0);} exit(1);'; do echo waiting for rabbitmq; sleep 2; done"]
+        - name: wait-for-mailpit
+          image: asset_monitoring_system-notification-consumer-worker:latest
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-lc", "until php -r '$s=@fsockopen(\"mailpit\",1025); if ($s) { fclose($s); exit(0);} exit(1);'; do echo waiting for mailpit; sleep 2; done"]
+      containers:
+        - name: notification-consumer-worker
+          image: asset_monitoring_system-notification-consumer-worker:latest
+          imagePullPolicy: IfNotPresent
+          command: ["php", "artisan", "notifications:consume-events"]
+          env:
+            - {name: APP_ENV, value: local}
+            - {name: APP_DEBUG, value: "true"}
+            - {name: DB_CONNECTION, value: pgsql}
+            - {name: DB_HOST, value: notification-db}
+            - {name: DB_PORT, value: "5432"}
+            - {name: DB_DATABASE, value: notification_db}
+            - name: DB_USERNAME
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: db-username}}
+            - name: DB_PASSWORD
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: db-password}}
+            - {name: CACHE_STORE, value: file}
+            - {name: MAIL_MAILER, value: smtp}
+            - {name: MAIL_HOST, value: mailpit}
+            - {name: MAIL_PORT, value: "1025"}
+            - name: MAIL_FROM_ADDRESS
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: mail-from-address}}
+            - {name: MAIL_FROM_NAME, value: AssetMonitoringSystem}
+            - name: SLACK_WEBHOOK_URL
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: slack-webhook-url}}
+            - {name: RABBITMQ_HOST, value: rabbitmq}
+            - {name: RABBITMQ_PORT, value: "5672"}
+            - name: RABBITMQ_USER
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: rabbitmq-user}}
+            - name: RABBITMQ_PASSWORD
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: rabbitmq-password}}
+            - name: RABBITMQ_VHOST
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: rabbitmq-vhost}}
+            - name: RABBITMQ_EXCHANGE
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: rabbitmq-exchange}}
+            - {name: RABBITMQ_QUEUE_PREFIX, value: notification}
+            - {name: TELESCOPE_ENABLED, value: "true"}
+            - {name: TELESCOPE_SERVICE_NAME, value: notification-service}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: health-monitor-scanner
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: health-monitor-scanner
+  template:
+    metadata:
+      labels:
+        app: health-monitor-scanner
+    spec:
+      initContainers:
+        - name: wait-for-health-monitor-db
+          image: asset_monitoring_system-health-monitor-scanner:latest
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-lc", "until php -r '$s=@fsockopen(\"health-monitor-db\",5432); if ($s) { fclose($s); exit(0);} exit(1);'; do echo waiting for health-monitor-db; sleep 2; done"]
+        - name: wait-for-rabbitmq
+          image: asset_monitoring_system-health-monitor-scanner:latest
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-lc", "until php -r '$s=@fsockopen(\"rabbitmq\",5672); if ($s) { fclose($s); exit(0);} exit(1);'; do echo waiting for rabbitmq; sleep 2; done"]
+      containers:
+        - name: health-monitor-scanner
+          image: asset_monitoring_system-health-monitor-scanner:latest
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -lc
+            - while true; do php artisan health:scan-inactive; sleep 60; done
+          env:
+            - {name: APP_ENV, value: local}
+            - {name: APP_DEBUG, value: "true"}
+            - {name: DB_CONNECTION, value: pgsql}
+            - {name: DB_HOST, value: health-monitor-db}
+            - {name: DB_PORT, value: "5432"}
+            - {name: DB_DATABASE, value: health_monitor_db}
+            - name: DB_USERNAME
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: db-username}}
+            - name: DB_PASSWORD
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: db-password}}
+            - {name: CACHE_STORE, value: file}
+            - {name: DEVICE_INACTIVE_AFTER_MINUTES, value: "10"}
+            - {name: RABBITMQ_HOST, value: rabbitmq}
+            - {name: RABBITMQ_PORT, value: "5672"}
+            - name: RABBITMQ_USER
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: rabbitmq-user}}
+            - name: RABBITMQ_PASSWORD
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: rabbitmq-password}}
+            - name: RABBITMQ_VHOST
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: rabbitmq-vhost}}
+            - name: RABBITMQ_EXCHANGE
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: rabbitmq-exchange}}
+            - {name: RABBITMQ_QUEUE_PREFIX, value: health}
+            - {name: TELESCOPE_ENABLED, value: "true"}
+            - {name: TELESCOPE_SERVICE_NAME, value: health-monitor-service}

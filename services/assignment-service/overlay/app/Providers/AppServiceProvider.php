@@ -9,6 +9,7 @@ use App\Repositories\Eloquent\UserProjectionRepository;
 use App\Support\CircuitBreaker\CircuitBreaker;
 use Illuminate\Contracts\Cache\Factory as CacheFactory;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Telescope\TelescopeServiceProvider as LaravelTelescopeServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -16,6 +17,8 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->bind(AssignmentRepositoryInterface::class, AssignmentRepository::class);
         $this->app->bind(UserProjectionRepositoryInterface::class, UserProjectionRepository::class);
+
+        $this->registerTelescope();
 
         $this->app->singleton(CircuitBreaker::class, function ($app): CircuitBreaker {
             /** @var CacheFactory $cache */
@@ -32,5 +35,15 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+    }
+
+    private function registerTelescope(): void
+    {
+        if (! $this->app->environment('local') || ! class_exists(LaravelTelescopeServiceProvider::class)) {
+            return;
+        }
+
+        $this->app->register(LaravelTelescopeServiceProvider::class);
+        $this->app->register(TelescopeServiceProvider::class);
     }
 }

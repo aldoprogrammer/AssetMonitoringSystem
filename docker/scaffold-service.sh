@@ -175,6 +175,14 @@ if [ -n "${COMPOSER_REQUIRE_DEV:-}" ]; then
   composer require --dev --no-interaction --no-progress ${COMPOSER_REQUIRE_DEV}
 fi
 
+if printf '%s' "${COMPOSER_REQUIRE_DEV:-}" | grep -q 'laravel/telescope'; then
+  if [ ! -f vendor/laravel/telescope/src/TelescopeServiceProvider.php ]; then
+    composer require --dev --no-interaction --no-progress laravel/telescope:^5.0
+  fi
+
+  php artisan vendor:publish --tag=telescope-assets --force >/dev/null 2>&1 || true
+fi
+
 if [ "${PASSPORT_ENABLED:-false}" = "true" ]; then
   php artisan vendor:publish --provider="Laravel\\Passport\\PassportServiceProvider" --tag=migrations --force || true
 fi

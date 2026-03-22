@@ -1,0 +1,230 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: identity-bootstrap
+spec:
+  backoffLimit: 10
+  template:
+    spec:
+      restartPolicy: OnFailure
+      initContainers:
+        - name: prepare-identity-storage
+          image: asset_monitoring_system-identity-service:latest
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -lc
+            - mkdir -p /var/www/app/storage/framework/cache /var/www/app/storage/framework/sessions /var/www/app/storage/framework/views /var/www/app/storage/logs
+          volumeMounts:
+            - name: identity-storage
+              mountPath: /var/www/app/storage
+        - name: wait-for-identity-db
+          image: asset_monitoring_system-identity-service:latest
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-lc", "until php -r '$s=@fsockopen(\"identity-db\",5432); if ($s) { fclose($s); exit(0);} exit(1);'; do echo waiting for identity-db; sleep 2; done"]
+      containers:
+        - name: identity-bootstrap
+          image: asset_monitoring_system-identity-service:latest
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -lc
+            - php artisan migrate --seed --force && php artisan passport:keys --force && php artisan passport:client --personal --name="AssetMonitoringSystem Personal Access Client" --no-interaction
+          env:
+            - {name: PASSPORT_ENABLED, value: "true"}
+            - {name: APP_ENV, value: local}
+            - {name: APP_DEBUG, value: "true"}
+            - {name: APP_URL, value: http://api.asset-monitoring-system.local/api/v1/identity}
+            - {name: DB_CONNECTION, value: pgsql}
+            - {name: DB_HOST, value: identity-db}
+            - {name: DB_PORT, value: "5432"}
+            - {name: DB_DATABASE, value: identity_db}
+            - name: DB_USERNAME
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: db-username}}
+            - name: DB_PASSWORD
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: db-password}}
+            - {name: QUEUE_CONNECTION, value: sync}
+            - {name: CACHE_STORE, value: file}
+            - {name: SESSION_DRIVER, value: file}
+            - {name: LOG_CHANNEL, value: stack}
+            - {name: RABBITMQ_HOST, value: rabbitmq}
+            - {name: RABBITMQ_PORT, value: "5672"}
+            - name: RABBITMQ_USER
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: rabbitmq-user}}
+            - name: RABBITMQ_PASSWORD
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: rabbitmq-password}}
+            - name: RABBITMQ_VHOST
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: rabbitmq-vhost}}
+            - name: RABBITMQ_EXCHANGE
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: rabbitmq-exchange}}
+            - {name: RABBITMQ_QUEUE_PREFIX, value: identity}
+            - {name: TELESCOPE_ENABLED, value: "true"}
+            - {name: TELESCOPE_PATH, value: identity/telescope}
+            - {name: TELESCOPE_SERVICE_NAME, value: identity-service}
+          volumeMounts:
+            - name: identity-storage
+              mountPath: /var/www/app/storage
+      volumes:
+        - name: identity-storage
+          persistentVolumeClaim:
+            claimName: identity-storage
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: inventory-migrate
+spec:
+  backoffLimit: 10
+  template:
+    spec:
+      restartPolicy: OnFailure
+      initContainers:
+        - name: wait-for-inventory-db
+          image: asset_monitoring_system-inventory-service:latest
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-lc", "until php -r '$s=@fsockopen(\"inventory-db\",5432); if ($s) { fclose($s); exit(0);} exit(1);'; do echo waiting for inventory-db; sleep 2; done"]
+      containers:
+        - name: inventory-migrate
+          image: asset_monitoring_system-inventory-service:latest
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-lc", "php artisan migrate --force"]
+          env:
+            - {name: APP_ENV, value: local}
+            - {name: APP_DEBUG, value: "true"}
+            - {name: APP_URL, value: http://api.asset-monitoring-system.local/api/v1/inventory}
+            - {name: DB_CONNECTION, value: pgsql}
+            - {name: DB_HOST, value: inventory-db}
+            - {name: DB_PORT, value: "5432"}
+            - {name: DB_DATABASE, value: inventory_db}
+            - name: DB_USERNAME
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: db-username}}
+            - name: DB_PASSWORD
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: db-password}}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: assignment-migrate
+spec:
+  backoffLimit: 10
+  template:
+    spec:
+      restartPolicy: OnFailure
+      initContainers:
+        - name: wait-for-assignment-db
+          image: asset_monitoring_system-assignment-service:latest
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-lc", "until php -r '$s=@fsockopen(\"assignment-db\",5432); if ($s) { fclose($s); exit(0);} exit(1);'; do echo waiting for assignment-db; sleep 2; done"]
+      containers:
+        - name: assignment-migrate
+          image: asset_monitoring_system-assignment-service:latest
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-lc", "php artisan migrate --force"]
+          env:
+            - {name: APP_ENV, value: local}
+            - {name: APP_DEBUG, value: "true"}
+            - {name: APP_URL, value: http://api.asset-monitoring-system.local/api/v1/assignments}
+            - {name: DB_CONNECTION, value: pgsql}
+            - {name: DB_HOST, value: assignment-db}
+            - {name: DB_PORT, value: "5432"}
+            - {name: DB_DATABASE, value: assignment_db}
+            - name: DB_USERNAME
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: db-username}}
+            - name: DB_PASSWORD
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: db-password}}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: health-monitor-migrate
+spec:
+  backoffLimit: 10
+  template:
+    spec:
+      restartPolicy: OnFailure
+      initContainers:
+        - name: wait-for-health-monitor-db
+          image: asset_monitoring_system-health-monitor-service:latest
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-lc", "until php -r '$s=@fsockopen(\"health-monitor-db\",5432); if ($s) { fclose($s); exit(0);} exit(1);'; do echo waiting for health-monitor-db; sleep 2; done"]
+      containers:
+        - name: health-monitor-migrate
+          image: asset_monitoring_system-health-monitor-service:latest
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-lc", "php artisan migrate --force"]
+          env:
+            - {name: APP_ENV, value: local}
+            - {name: APP_DEBUG, value: "true"}
+            - {name: APP_URL, value: http://api.asset-monitoring-system.local/api/v1/health}
+            - {name: DB_CONNECTION, value: pgsql}
+            - {name: DB_HOST, value: health-monitor-db}
+            - {name: DB_PORT, value: "5432"}
+            - {name: DB_DATABASE, value: health_monitor_db}
+            - name: DB_USERNAME
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: db-username}}
+            - name: DB_PASSWORD
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: db-password}}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: audit-migrate
+spec:
+  backoffLimit: 10
+  template:
+    spec:
+      restartPolicy: OnFailure
+      initContainers:
+        - name: wait-for-audit-db
+          image: asset_monitoring_system-audit-service:latest
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-lc", "until php -r '$s=@fsockopen(\"audit-db\",5432); if ($s) { fclose($s); exit(0);} exit(1);'; do echo waiting for audit-db; sleep 2; done"]
+      containers:
+        - name: audit-migrate
+          image: asset_monitoring_system-audit-service:latest
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-lc", "php artisan migrate --force"]
+          env:
+            - {name: APP_ENV, value: local}
+            - {name: APP_DEBUG, value: "true"}
+            - {name: APP_URL, value: http://api.asset-monitoring-system.local/api/v1/audit}
+            - {name: DB_CONNECTION, value: pgsql}
+            - {name: DB_HOST, value: audit-db}
+            - {name: DB_PORT, value: "5432"}
+            - {name: DB_DATABASE, value: audit_db}
+            - name: DB_USERNAME
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: db-username}}
+            - name: DB_PASSWORD
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: db-password}}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: notification-migrate
+spec:
+  backoffLimit: 10
+  template:
+    spec:
+      restartPolicy: OnFailure
+      initContainers:
+        - name: wait-for-notification-db
+          image: asset_monitoring_system-notification-service:latest
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-lc", "until php -r '$s=@fsockopen(\"notification-db\",5432); if ($s) { fclose($s); exit(0);} exit(1);'; do echo waiting for notification-db; sleep 2; done"]
+      containers:
+        - name: notification-migrate
+          image: asset_monitoring_system-notification-service:latest
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-lc", "php artisan migrate --force"]
+          env:
+            - {name: APP_ENV, value: local}
+            - {name: APP_DEBUG, value: "true"}
+            - {name: APP_URL, value: http://api.asset-monitoring-system.local/api/v1/notifications}
+            - {name: DB_CONNECTION, value: pgsql}
+            - {name: DB_HOST, value: notification-db}
+            - {name: DB_PORT, value: "5432"}
+            - {name: DB_DATABASE, value: notification_db}
+            - name: DB_USERNAME
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: db-username}}
+            - name: DB_PASSWORD
+              valueFrom: {secretKeyRef: {name: asset-monitoring-system-secrets, key: db-password}}

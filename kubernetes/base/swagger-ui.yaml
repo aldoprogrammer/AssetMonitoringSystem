@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: swagger-ui
+spec:
+  selector:
+    app: swagger-ui
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: swagger-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: swagger-ui
+  template:
+    metadata:
+      labels:
+        app: swagger-ui
+    spec:
+      containers:
+        - name: swagger-ui
+          image: swaggerapi/swagger-ui:v5.17.14
+          ports:
+            - containerPort: 8080
+          env:
+            - {name: SWAGGER_JSON_URL, value: /specs/index.yaml}
+            - {name: BASE_URL, value: /}
+          volumeMounts:
+            - {name: swagger-specs, mountPath: /usr/share/nginx/html/specs/index.yaml, subPath: index.yaml, readOnly: true}
+            - {name: swagger-specs, mountPath: /usr/share/nginx/html/specs/specs/identity.yaml, subPath: identity.yaml, readOnly: true}
+            - {name: swagger-specs, mountPath: /usr/share/nginx/html/specs/specs/inventory.yaml, subPath: inventory.yaml, readOnly: true}
+            - {name: swagger-specs, mountPath: /usr/share/nginx/html/specs/specs/assignment.yaml, subPath: assignment.yaml, readOnly: true}
+            - {name: swagger-specs, mountPath: /usr/share/nginx/html/specs/specs/health.yaml, subPath: health.yaml, readOnly: true}
+            - {name: swagger-specs, mountPath: /usr/share/nginx/html/specs/specs/audit.yaml, subPath: audit.yaml, readOnly: true}
+            - {name: swagger-specs, mountPath: /usr/share/nginx/html/specs/specs/notification.yaml, subPath: notification.yaml, readOnly: true}
+      volumes:
+        - name: swagger-specs
+          configMap:
+            name: swagger-specs
