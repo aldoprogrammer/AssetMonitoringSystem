@@ -9,6 +9,8 @@ paths:
     get:
       tags: [Notification]
       summary: List notification deliveries
+      security:
+        - bearerAuth: []
       responses:
         '200':
           description: Notification delivery collection

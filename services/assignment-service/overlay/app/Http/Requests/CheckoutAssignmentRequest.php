@@ -14,7 +14,7 @@ class CheckoutAssignmentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'user_id' => ['required', 'integer'],
+            'user_id' => ['required', 'uuid'],
             'asset_serial_number' => ['required', 'string', 'max:100'],
         ];
     }

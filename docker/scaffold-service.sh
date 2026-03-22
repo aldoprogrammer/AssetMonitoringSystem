@@ -20,6 +20,8 @@ cd "${TARGET_DIR}"
 # Remove Laravel's default user migration so each service can own its schema.
 rm -f database/migrations/*_create_users_table.php
 rm -f .env
+rm -f tests/Feature/ExampleTest.php
+rm -f tests/Unit/ExampleTest.php
 
 if [ -d "${SERVICE_DIR}/overlay" ]; then
   cp -R "${SERVICE_DIR}/overlay"/. "${TARGET_DIR}"/
@@ -32,9 +34,15 @@ fi
 cat > bootstrap/app.php <<'EOF'
 <?php
 
-use Illuminate\Foundation\Application;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\QueryException;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Configuration\Exceptions;
+use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -45,10 +53,83 @@ return Application::configure(basePath: dirname(__DIR__))
         apiPrefix: 'api',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->redirectGuestsTo(function ($request) {
+            if ($request->is('api/*') || $request->expectsJson() || $request->wantsJson()) {
+                return null;
+            }
+
+            return route('login');
+        });
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $isApiRequest = static fn ($request): bool => $request->is('api/*') || $request->expectsJson() || $request->wantsJson();
+
+        $exceptions->render(function (AuthenticationException $exception, $request) {
+            if (($request->is('api/*') || $request->expectsJson() || $request->wantsJson())) {
+                return response()->json([
+                    'message' => 'Authentication required. Please login first and send a valid Bearer token.',
+                    'error' => 'unauthenticated',
+                ], Response::HTTP_UNAUTHORIZED);
+            }
+
+            return null;
+        });
+
+        $exceptions->render(function (ValidationException $exception, $request) use ($isApiRequest) {
+            if ($isApiRequest($request)) {
+                return response()->json([
+                    'message' => 'Some of the submitted data is invalid. Please review the highlighted fields and try again.',
+                    'error' => 'validation_failed',
+                    'errors' => $exception->errors(),
+                ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
+
+            return null;
+        });
+
+        $exceptions->render(function (ModelNotFoundException $exception, $request) use ($isApiRequest) {
+            if ($isApiRequest($request)) {
+                return response()->json([
+                    'message' => 'The requested record could not be found.',
+                    'error' => 'not_found',
+                ], Response::HTTP_NOT_FOUND);
+            }
+
+            return null;
+        });
+
+        $exceptions->render(function (NotFoundHttpException $exception, $request) use ($isApiRequest) {
+            if ($isApiRequest($request)) {
+                return response()->json([
+                    'message' => 'The requested API endpoint could not be found.',
+                    'error' => 'route_not_found',
+                ], Response::HTTP_NOT_FOUND);
+            }
+
+            return null;
+        });
+
+        $exceptions->render(function (QueryException $exception, $request) use ($isApiRequest) {
+            if ($isApiRequest($request)) {
+                return response()->json([
+                    'message' => 'The service could not complete the request because of a data access problem.',
+                    'error' => 'database_error',
+                ], Response::HTTP_INTERNAL_SERVER_ERROR);
+            }
+
+            return null;
+        });
+
+        $exceptions->render(function (\Throwable $exception, $request) use ($isApiRequest) {
+            if ($isApiRequest($request)) {
+                return response()->json([
+                    'message' => 'Something went wrong while processing the request. Please try again.',
+                    'error' => 'internal_server_error',
+                ], Response::HTTP_INTERNAL_SERVER_ERROR);
+            }
+
+            return null;
+        });
     })->create();
 EOF
 

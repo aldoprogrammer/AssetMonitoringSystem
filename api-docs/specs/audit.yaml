@@ -9,6 +9,8 @@ paths:
     get:
       tags: [Audit]
       summary: List centralized audit logs
+      security:
+        - bearerAuth: []
       responses:
         '200':
           description: Audit log collection

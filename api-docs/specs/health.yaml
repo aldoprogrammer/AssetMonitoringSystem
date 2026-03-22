@@ -9,6 +9,8 @@ paths:
     post:
       tags: [Health]
       summary: Ingest a device heartbeat
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:

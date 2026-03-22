@@ -1,3 +1,5 @@
+name: asset_monitoring_system
+
 services:
   gateway:
     image: nginx:1.27-alpine
@@ -278,6 +280,8 @@ services:
   assignment-user-sync-worker:
     profiles: ["workers"]
     restart: unless-stopped
+    container_name: asset_monitoring_system-assignment-user-sync-worker
+    image: asset_monitoring_system-assignment-user-sync-worker
     build:
       context: .
       dockerfile: docker/service.Dockerfile
@@ -387,6 +391,8 @@ services:
   audit-consumer-worker:
     profiles: ["workers"]
     restart: unless-stopped
+    container_name: asset_monitoring_system-audit-consumer-worker
+    image: asset_monitoring_system-audit-consumer-worker
     build:
       context: .
       dockerfile: docker/service.Dockerfile
@@ -446,7 +452,7 @@ services:
       MAIL_MAILER: smtp
       MAIL_HOST: mailpit
       MAIL_PORT: 1025
-      MAIL_FROM_ADDRESS: no-reply@asset_monitoring_system.local
+      MAIL_FROM_ADDRESS: no-reply@assetmonitoringsystem.local
       MAIL_FROM_NAME: AssetMonitoringSystem
       SLACK_WEBHOOK_URL: ""
       RABBITMQ_HOST: rabbitmq
@@ -462,6 +468,8 @@ services:
   notification-consumer-worker:
     profiles: ["workers"]
     restart: unless-stopped
+    container_name: asset_monitoring_system-notification-consumer-worker
+    image: asset_monitoring_system-notification-consumer-worker
     build:
       context: .
       dockerfile: docker/service.Dockerfile
@@ -488,7 +496,7 @@ services:
       MAIL_MAILER: smtp
       MAIL_HOST: mailpit
       MAIL_PORT: 1025
-      MAIL_FROM_ADDRESS: no-reply@asset_monitoring_system.local
+      MAIL_FROM_ADDRESS: no-reply@assetmonitoringsystem.local
       MAIL_FROM_NAME: AssetMonitoringSystem
       SLACK_WEBHOOK_URL: ""
       RABBITMQ_HOST: rabbitmq
@@ -504,6 +512,8 @@ services:
   health-monitor-scanner:
     profiles: ["workers"]
     restart: unless-stopped
+    container_name: asset_monitoring_system-health-monitor-scanner
+    image: asset_monitoring_system-health-monitor-scanner
     build:
       context: .
       dockerfile: docker/service.Dockerfile

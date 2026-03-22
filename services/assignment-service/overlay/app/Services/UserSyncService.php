@@ -12,7 +12,7 @@ class UserSyncService
 
     public function sync(array $payload): void
     {
-        $this->users->updateOrCreateByExternalId((int) $payload['id'], [
+        $this->users->updateOrCreateByExternalId((string) $payload['id'], [
             'employee_id' => $payload['employee_id'] ?? null,
             'name' => $payload['name'],
             'email' => $payload['email'],

@@ -60,6 +60,7 @@ class AssignmentService
             'source_service' => 'assignment-service',
             'payload' => [
                 'assignment_id' => $assignment->id,
+                'assignment_public_id' => $assignment->uuid,
                 'user_id' => $assignment->user_id,
                 'user_email' => $assignment->user_email,
                 'asset_serial_number' => $assignment->asset_serial_number,
@@ -90,6 +91,7 @@ class AssignmentService
             'source_service' => 'assignment-service',
             'payload' => [
                 'assignment_id' => $assignment->id,
+                'assignment_public_id' => $assignment->uuid,
                 'user_id' => $assignment->user_id,
                 'asset_serial_number' => $assignment->asset_serial_number,
             ],

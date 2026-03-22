@@ -9,6 +9,7 @@ paths:
     post:
       tags: [Identity]
       summary: Authenticate a user and return a Passport access token
+      security: []
       requestBody:
         required: true
         content:
@@ -20,7 +21,7 @@ paths:
                 email:
                   type: string
                   format: email
-                  example: admin@asset_monitoring_system.local
+                  example: admin@assetmonitoringsystem.local
                 password:
                   type: string
                   example: AdminPass123!
@@ -51,6 +52,7 @@ paths:
     post:
       tags: [Identity]
       summary: Create user
+      description: Creates a user. The backend auto-generates the user's UUID. Use `employee_uuid` only to link this user to an existing employee record.
       security:
         - bearerAuth: []
       requestBody:
@@ -62,8 +64,10 @@ paths:
               required: [name, email, password, role]
               properties:
                 employee_id:
-                  type: integer
-                  example: 1
+                  type: string
+                  format: uuid
+                  example: 7d824845-401b-4d93-afab-9a3f9c709a6c
+                  description: Existing employee ID in UUID format to associate with this user.
                 name:
                   type: string
                 email:
@@ -133,6 +137,7 @@ paths:
     post:
       tags: [Identity]
       summary: Create employee
+      description: Creates an employee. The backend auto-generates the employee UUID.
       security:
         - bearerAuth: []
       requestBody:
@@ -197,7 +202,9 @@ components:
       type: object
       properties:
         id:
-          type: integer
+          type: string
+          format: uuid
+          readOnly: true
         name:
           type: string
         email:

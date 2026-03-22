@@ -9,12 +9,16 @@ paths:
     get:
       tags: [Inventory]
       summary: List assets
+      security:
+        - bearerAuth: []
       responses:
         '200':
           description: Asset collection
     post:
       tags: [Inventory]
       summary: Create asset
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -46,12 +50,16 @@ paths:
     get:
       tags: [Inventory]
       summary: Get asset
+      security:
+        - bearerAuth: []
       responses:
         '200':
           description: Asset detail
     put:
       tags: [Inventory]
       summary: Update asset
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -71,6 +79,8 @@ paths:
     get:
       tags: [Inventory]
       summary: Validate asset availability by serial number
+      security:
+        - bearerAuth: []
       responses:
         '200':
           description: Asset availability

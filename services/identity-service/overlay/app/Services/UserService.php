@@ -4,12 +4,14 @@ namespace App\Services;
 
 use App\Infrastructure\Messaging\TopicPublisher;
 use App\Models\User;
+use App\Repositories\Contracts\EmployeeRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
 
 class UserService
 {
     public function __construct(
         private readonly UserRepositoryInterface $users,
+        private readonly EmployeeRepositoryInterface $employees,
         private readonly TopicPublisher $publisher,
     ) {
     }
@@ -26,6 +28,7 @@ class UserService
 
     public function create(array $payload): User
     {
+        $payload = $this->normalizeEmployeeReference($payload);
         $user = $this->users->create($payload);
         $this->publishLifecycleEvent('user.created', $user);
 
@@ -34,6 +37,7 @@ class UserService
 
     public function update(int $id, array $payload): User
     {
+        $payload = $this->normalizeEmployeeReference($payload);
         $user = $this->users->findOrFail($id);
         $user = $this->users->update($user, $payload);
         $this->publishLifecycleEvent('user.updated', $user);
@@ -49,12 +53,21 @@ class UserService
             'occurred_at' => now()->toIso8601String(),
             'source_service' => 'identity-service',
             'payload' => [
-                'id' => $user->id,
-                'employee_id' => $user->employee_id,
+                'id' => $user->uuid,
+                'employee_id' => $user->employee?->uuid,
                 'name' => $user->name,
                 'email' => $user->email,
                 'role' => $user->role,
             ],
         ]);
+    }
+
+    private function normalizeEmployeeReference(array $payload): array
+    {
+        if (! empty($payload['employee_id'])) {
+            $payload['employee_id'] = $this->employees->findByUuidOrFail($payload['employee_id'])->id;
+        }
+
+        return $payload;
     }
 }

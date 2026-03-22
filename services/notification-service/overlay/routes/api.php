@@ -4,5 +4,5 @@ use App\Http\Controllers\Api\V1\NotificationController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function (): void {
-    Route::get('deliveries', [NotificationController::class, 'index']);
+    Route::get('deliveries', [NotificationController::class, 'index'])->name('notification-deliveries.index');
 });

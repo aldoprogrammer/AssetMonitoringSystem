@@ -10,12 +10,12 @@ class UserResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
+            'id' => $this->uuid,
             'name' => $this->name,
             'email' => $this->email,
             'role' => $this->role,
             'employee' => $this->whenLoaded('employee', fn () => [
-                'id' => $this->employee?->id,
+                'id' => $this->employee?->uuid,
                 'employee_code' => $this->employee?->employee_code,
                 'department' => $this->employee?->department,
                 'job_title' => $this->employee?->job_title,

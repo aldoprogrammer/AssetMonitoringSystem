@@ -10,7 +10,7 @@ class AssignmentResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
+            'id' => $this->uuid,
             'user_id' => $this->user_id,
             'user_email' => $this->user_email,
             'asset_serial_number' => $this->asset_serial_number,

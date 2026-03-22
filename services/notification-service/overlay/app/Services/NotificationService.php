@@ -20,7 +20,7 @@ class NotificationService
 
     public function dispatch(array $event): void
     {
-        $recipient = data_get($event, 'payload.user_email', 'ops@asset_monitoring_system.local');
+        $recipient = data_get($event, 'payload.user_email', 'ops@assetmonitoringsystem.local');
         $eventType = $event['event_type'] ?? 'unknown';
         $payload = $event['payload'] ?? [];
 

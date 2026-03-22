@@ -6,6 +6,8 @@ info:
 servers:
   - url: http://localhost:8080
     description: Local API Gateway
+security:
+  - bearerAuth: []
 tags:
   - name: Identity
   - name: Inventory

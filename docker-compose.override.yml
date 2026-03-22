@@ -1,0 +1,177 @@
+services:
+  identity-service:
+    volumes:
+      - ./services/identity-service/overlay/app/Events:/var/www/app/app/Events
+      - ./services/identity-service/overlay/app/Http/Controllers/Api:/var/www/app/app/Http/Controllers/Api
+      - ./services/identity-service/overlay/app/Http/Requests:/var/www/app/app/Http/Requests
+      - ./services/identity-service/overlay/app/Http/Resources:/var/www/app/app/Http/Resources
+      - ./services/identity-service/overlay/app/Infrastructure:/var/www/app/app/Infrastructure
+      - ./services/identity-service/overlay/app/Models:/var/www/app/app/Models
+      - ./services/identity-service/overlay/app/Providers:/var/www/app/app/Providers
+      - ./services/identity-service/overlay/app/Repositories:/var/www/app/app/Repositories
+      - ./services/identity-service/overlay/app/Services:/var/www/app/app/Services
+      - ./services/identity-service/overlay/config:/var/www/app/config
+      - ./services/identity-service/overlay/database:/var/www/app/database
+      - ./services/identity-service/overlay/routes/api.php:/var/www/app/routes/api.php
+      - ./services/identity-service/overlay/tests:/var/www/app/tests
+      - ./services/identity-service/overlay/.env.example:/var/www/app/.env.example
+
+  inventory-service:
+    volumes:
+      - ./services/inventory-service/overlay/app/Http/Controllers/Api:/var/www/app/app/Http/Controllers/Api
+      - ./services/inventory-service/overlay/app/Http/Requests:/var/www/app/app/Http/Requests
+      - ./services/inventory-service/overlay/app/Http/Resources:/var/www/app/app/Http/Resources
+      - ./services/inventory-service/overlay/app/Infrastructure:/var/www/app/app/Infrastructure
+      - ./services/inventory-service/overlay/app/Models:/var/www/app/app/Models
+      - ./services/inventory-service/overlay/app/Providers:/var/www/app/app/Providers
+      - ./services/inventory-service/overlay/app/Repositories:/var/www/app/app/Repositories
+      - ./services/inventory-service/overlay/app/Services:/var/www/app/app/Services
+      - ./services/inventory-service/overlay/config:/var/www/app/config
+      - ./services/inventory-service/overlay/database:/var/www/app/database
+      - ./services/inventory-service/overlay/routes/api.php:/var/www/app/routes/api.php
+      - ./services/inventory-service/overlay/tests:/var/www/app/tests
+      - ./services/inventory-service/overlay/.env.example:/var/www/app/.env.example
+
+  assignment-service:
+    volumes:
+      - ./services/assignment-service/overlay/app/Console:/var/www/app/app/Console
+      - ./services/assignment-service/overlay/app/Enums:/var/www/app/app/Enums
+      - ./services/assignment-service/overlay/app/Http/Controllers/Api:/var/www/app/app/Http/Controllers/Api
+      - ./services/assignment-service/overlay/app/Http/Requests:/var/www/app/app/Http/Requests
+      - ./services/assignment-service/overlay/app/Http/Resources:/var/www/app/app/Http/Resources
+      - ./services/assignment-service/overlay/app/Infrastructure:/var/www/app/app/Infrastructure
+      - ./services/assignment-service/overlay/app/Models:/var/www/app/app/Models
+      - ./services/assignment-service/overlay/app/Providers:/var/www/app/app/Providers
+      - ./services/assignment-service/overlay/app/Repositories:/var/www/app/app/Repositories
+      - ./services/assignment-service/overlay/app/Services:/var/www/app/app/Services
+      - ./services/assignment-service/overlay/app/Support:/var/www/app/app/Support
+      - ./services/assignment-service/overlay/config:/var/www/app/config
+      - ./services/assignment-service/overlay/database:/var/www/app/database
+      - ./services/assignment-service/overlay/routes/api.php:/var/www/app/routes/api.php
+      - ./services/assignment-service/overlay/tests:/var/www/app/tests
+      - ./services/assignment-service/overlay/.env.example:/var/www/app/.env.example
+
+  assignment-user-sync-worker:
+    volumes:
+      - ./services/assignment-service/overlay/app/Console:/var/www/app/app/Console
+      - ./services/assignment-service/overlay/app/Enums:/var/www/app/app/Enums
+      - ./services/assignment-service/overlay/app/Http/Controllers/Api:/var/www/app/app/Http/Controllers/Api
+      - ./services/assignment-service/overlay/app/Http/Requests:/var/www/app/app/Http/Requests
+      - ./services/assignment-service/overlay/app/Http/Resources:/var/www/app/app/Http/Resources
+      - ./services/assignment-service/overlay/app/Infrastructure:/var/www/app/app/Infrastructure
+      - ./services/assignment-service/overlay/app/Models:/var/www/app/app/Models
+      - ./services/assignment-service/overlay/app/Providers:/var/www/app/app/Providers
+      - ./services/assignment-service/overlay/app/Repositories:/var/www/app/app/Repositories
+      - ./services/assignment-service/overlay/app/Services:/var/www/app/app/Services
+      - ./services/assignment-service/overlay/app/Support:/var/www/app/app/Support
+      - ./services/assignment-service/overlay/config:/var/www/app/config
+      - ./services/assignment-service/overlay/database:/var/www/app/database
+      - ./services/assignment-service/overlay/routes/api.php:/var/www/app/routes/api.php
+      - ./services/assignment-service/overlay/tests:/var/www/app/tests
+      - ./services/assignment-service/overlay/.env.example:/var/www/app/.env.example
+
+  health-monitor-service:
+    volumes:
+      - ./services/health-monitor-service/overlay/app/Console:/var/www/app/app/Console
+      - ./services/health-monitor-service/overlay/app/Http/Controllers/Api:/var/www/app/app/Http/Controllers/Api
+      - ./services/health-monitor-service/overlay/app/Http/Requests:/var/www/app/app/Http/Requests
+      - ./services/health-monitor-service/overlay/app/Http/Resources:/var/www/app/app/Http/Resources
+      - ./services/health-monitor-service/overlay/app/Infrastructure:/var/www/app/app/Infrastructure
+      - ./services/health-monitor-service/overlay/app/Models:/var/www/app/app/Models
+      - ./services/health-monitor-service/overlay/app/Providers:/var/www/app/app/Providers
+      - ./services/health-monitor-service/overlay/app/Repositories:/var/www/app/app/Repositories
+      - ./services/health-monitor-service/overlay/app/Services:/var/www/app/app/Services
+      - ./services/health-monitor-service/overlay/config:/var/www/app/config
+      - ./services/health-monitor-service/overlay/database:/var/www/app/database
+      - ./services/health-monitor-service/overlay/routes/api.php:/var/www/app/routes/api.php
+      - ./services/health-monitor-service/overlay/tests:/var/www/app/tests
+      - ./services/health-monitor-service/overlay/.env.example:/var/www/app/.env.example
+
+  health-monitor-scanner:
+    volumes:
+      - ./services/health-monitor-service/overlay/app/Console:/var/www/app/app/Console
+      - ./services/health-monitor-service/overlay/app/Http/Controllers/Api:/var/www/app/app/Http/Controllers/Api
+      - ./services/health-monitor-service/overlay/app/Http/Requests:/var/www/app/app/Http/Requests
+      - ./services/health-monitor-service/overlay/app/Http/Resources:/var/www/app/app/Http/Resources
+      - ./services/health-monitor-service/overlay/app/Infrastructure:/var/www/app/app/Infrastructure
+      - ./services/health-monitor-service/overlay/app/Models:/var/www/app/app/Models
+      - ./services/health-monitor-service/overlay/app/Providers:/var/www/app/app/Providers
+      - ./services/health-monitor-service/overlay/app/Repositories:/var/www/app/app/Repositories
+      - ./services/health-monitor-service/overlay/app/Services:/var/www/app/app/Services
+      - ./services/health-monitor-service/overlay/config:/var/www/app/config
+      - ./services/health-monitor-service/overlay/database:/var/www/app/database
+      - ./services/health-monitor-service/overlay/routes/api.php:/var/www/app/routes/api.php
+      - ./services/health-monitor-service/overlay/tests:/var/www/app/tests
+      - ./services/health-monitor-service/overlay/.env.example:/var/www/app/.env.example
+
+  audit-service:
+    volumes:
+      - ./services/audit-service/overlay/app/Console:/var/www/app/app/Console
+      - ./services/audit-service/overlay/app/Http/Controllers/Api:/var/www/app/app/Http/Controllers/Api
+      - ./services/audit-service/overlay/app/Http/Requests:/var/www/app/app/Http/Requests
+      - ./services/audit-service/overlay/app/Http/Resources:/var/www/app/app/Http/Resources
+      - ./services/audit-service/overlay/app/Infrastructure:/var/www/app/app/Infrastructure
+      - ./services/audit-service/overlay/app/Models:/var/www/app/app/Models
+      - ./services/audit-service/overlay/app/Providers:/var/www/app/app/Providers
+      - ./services/audit-service/overlay/app/Repositories:/var/www/app/app/Repositories
+      - ./services/audit-service/overlay/app/Services:/var/www/app/app/Services
+      - ./services/audit-service/overlay/config:/var/www/app/config
+      - ./services/audit-service/overlay/database:/var/www/app/database
+      - ./services/audit-service/overlay/routes/api.php:/var/www/app/routes/api.php
+      - ./services/audit-service/overlay/tests:/var/www/app/tests
+      - ./services/audit-service/overlay/.env.example:/var/www/app/.env.example
+
+  audit-consumer-worker:
+    volumes:
+      - ./services/audit-service/overlay/app/Console:/var/www/app/app/Console
+      - ./services/audit-service/overlay/app/Http/Controllers/Api:/var/www/app/app/Http/Controllers/Api
+      - ./services/audit-service/overlay/app/Http/Requests:/var/www/app/app/Http/Requests
+      - ./services/audit-service/overlay/app/Http/Resources:/var/www/app/app/Http/Resources
+      - ./services/audit-service/overlay/app/Infrastructure:/var/www/app/app/Infrastructure
+      - ./services/audit-service/overlay/app/Models:/var/www/app/app/Models
+      - ./services/audit-service/overlay/app/Providers:/var/www/app/app/Providers
+      - ./services/audit-service/overlay/app/Repositories:/var/www/app/app/Repositories
+      - ./services/audit-service/overlay/app/Services:/var/www/app/app/Services
+      - ./services/audit-service/overlay/config:/var/www/app/config
+      - ./services/audit-service/overlay/database:/var/www/app/database
+      - ./services/audit-service/overlay/routes/api.php:/var/www/app/routes/api.php
+      - ./services/audit-service/overlay/tests:/var/www/app/tests
+      - ./services/audit-service/overlay/.env.example:/var/www/app/.env.example
+
+  notification-service:
+    volumes:
+      - ./services/notification-service/overlay/app/Console:/var/www/app/app/Console
+      - ./services/notification-service/overlay/app/Http/Controllers/Api:/var/www/app/app/Http/Controllers/Api
+      - ./services/notification-service/overlay/app/Http/Requests:/var/www/app/app/Http/Requests
+      - ./services/notification-service/overlay/app/Http/Resources:/var/www/app/app/Http/Resources
+      - ./services/notification-service/overlay/app/Infrastructure:/var/www/app/app/Infrastructure
+      - ./services/notification-service/overlay/app/Mail:/var/www/app/app/Mail
+      - ./services/notification-service/overlay/app/Models:/var/www/app/app/Models
+      - ./services/notification-service/overlay/app/Providers:/var/www/app/app/Providers
+      - ./services/notification-service/overlay/app/Repositories:/var/www/app/app/Repositories
+      - ./services/notification-service/overlay/app/Services:/var/www/app/app/Services
+      - ./services/notification-service/overlay/config:/var/www/app/config
+      - ./services/notification-service/overlay/database:/var/www/app/database
+      - ./services/notification-service/overlay/resources:/var/www/app/resources
+      - ./services/notification-service/overlay/routes/api.php:/var/www/app/routes/api.php
+      - ./services/notification-service/overlay/tests:/var/www/app/tests
+      - ./services/notification-service/overlay/.env.example:/var/www/app/.env.example
+
+  notification-consumer-worker:
+    volumes:
+      - ./services/notification-service/overlay/app/Console:/var/www/app/app/Console
+      - ./services/notification-service/overlay/app/Http/Controllers/Api:/var/www/app/app/Http/Controllers/Api
+      - ./services/notification-service/overlay/app/Http/Requests:/var/www/app/app/Http/Requests
+      - ./services/notification-service/overlay/app/Http/Resources:/var/www/app/app/Http/Resources
+      - ./services/notification-service/overlay/app/Infrastructure:/var/www/app/app/Infrastructure
+      - ./services/notification-service/overlay/app/Mail:/var/www/app/app/Mail
+      - ./services/notification-service/overlay/app/Models:/var/www/app/app/Models
+      - ./services/notification-service/overlay/app/Providers:/var/www/app/app/Providers
+      - ./services/notification-service/overlay/app/Repositories:/var/www/app/app/Repositories
+      - ./services/notification-service/overlay/app/Services:/var/www/app/app/Services
+      - ./services/notification-service/overlay/config:/var/www/app/config
+      - ./services/notification-service/overlay/database:/var/www/app/database
+      - ./services/notification-service/overlay/resources:/var/www/app/resources
+      - ./services/notification-service/overlay/routes/api.php:/var/www/app/routes/api.php
+      - ./services/notification-service/overlay/tests:/var/www/app/tests
+      - ./services/notification-service/overlay/.env.example:/var/www/app/.env.example

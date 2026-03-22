@@ -6,7 +6,7 @@ use App\Models\UserProjection;
 
 interface UserProjectionRepositoryInterface
 {
-    public function findByExternalId(int $externalUserId): ?UserProjection;
+    public function findByExternalId(string $externalUserId): ?UserProjection;
 
-    public function updateOrCreateByExternalId(int $externalUserId, array $attributes): UserProjection;
+    public function updateOrCreateByExternalId(string $externalUserId, array $attributes): UserProjection;
 }

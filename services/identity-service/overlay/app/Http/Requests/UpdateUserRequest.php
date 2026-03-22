@@ -18,7 +18,7 @@ class UpdateUserRequest extends FormRequest
         $userId = (int) $this->route('user');
 
         return [
-            'employee_id' => ['nullable', 'integer', 'exists:employees,id'],
+            'employee_id' => ['nullable', 'uuid', 'exists:employees,uuid'],
             'name' => ['sometimes', 'string', 'max:255'],
             'email' => ['sometimes', 'email', 'max:255', Rule::unique('users', 'email')->ignore($userId)],
             'password' => ['sometimes', 'string', 'min:10'],

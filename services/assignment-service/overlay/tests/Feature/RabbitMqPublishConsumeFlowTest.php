@@ -20,10 +20,10 @@ class RabbitMqPublishConsumeFlowTest extends TestCase
             'occurred_at' => now()->toIso8601String(),
             'source_service' => 'identity-service',
             'payload' => [
-                'id' => 202,
-                'employee_id' => 8001,
+                'id' => '25644e5d-fdc8-4898-8f45-6f4416b93cfb',
+                'employee_id' => 'a63afbb5-f0ad-4563-b3a5-1e5f5057a0fd',
                 'name' => 'Sam Staff',
-                'email' => 'sam.staff@asset_monitoring_system.local',
+                'email' => 'sam.staff@assetmonitoringsystem.local',
                 'role' => 'staff',
             ],
         ];
@@ -56,8 +56,8 @@ class RabbitMqPublishConsumeFlowTest extends TestCase
         $this->assertDatabaseCount('processed_messages', 1);
         $this->assertDatabaseCount('user_projections', 1);
         $this->assertDatabaseHas('user_projections', [
-            'external_user_id' => 202,
-            'email' => 'sam.staff@asset_monitoring_system.local',
+            'external_user_id' => '25644e5d-fdc8-4898-8f45-6f4416b93cfb',
+            'email' => 'sam.staff@assetmonitoringsystem.local',
         ]);
     }
 }

@@ -16,12 +16,12 @@ class DatabaseSeeder extends Seeder
                 'full_name' => 'System Administrator',
                 'department' => 'IT Operations',
                 'job_title' => 'IT Administrator',
-                'email' => 'admin@asset_monitoring_system.local',
+                'email' => 'admin@assetmonitoringsystem.local',
             ],
         );
 
         User::query()->firstOrCreate(
-            ['email' => 'admin@asset_monitoring_system.local'],
+            ['email' => 'admin@assetmonitoringsystem.local'],
             [
                 'employee_id' => $employee->id,
                 'name' => 'AssetMonitoringSystem Admin',

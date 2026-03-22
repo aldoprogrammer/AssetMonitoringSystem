@@ -72,6 +72,15 @@ Each service folder contains:
 docker compose build
 ```
 
+For day-to-day development, source code and tests are bind-mounted into the PHP containers through `docker-compose.override.yml`. That means normal changes in `services/*/overlay/app`, `config`, `database`, `routes`, `tests`, and `resources` are live without rebuilding the image.
+
+Rebuild the images only when you change:
+
+- `docker/service.Dockerfile`
+- `docker/scaffold-service.sh`
+- Composer dependencies or PHP extensions
+- anything that changes the scaffolded base application rather than the mounted overlay files
+
 If you rebuilt after changing migrations or Docker scaffolding, reset local volumes first so old tables do not remain:
 
 ```bash
@@ -150,11 +159,52 @@ To also remove databases:
 docker compose down -v
 ```
 
+### 7. Restart Everything
+
+```bash
+docker compose up -d
+docker compose --profile workers up -d
+docker compose ps
+
+```
+
+### 8. Fast Dev Workflow
+
+If you only changed PHP code, routes, config, tests, or Blade/resources:
+
+```bash
+docker compose up -d
+docker compose --profile workers up -d
+```
+
+Then just rerun the command you need, for example:
+
+```bash
+docker compose exec identity-service php artisan test
+```
+
+`docker compose` automatically loads `docker-compose.override.yml` locally.
+
+If you want to run the base file only, for example in CI or deployment-style usage, call:
+
+```bash
+docker compose -f docker-compose.yml up -d
+```
+
+If you changed Docker/scaffolding/dependencies:
+
+```bash
+docker compose build --no-cache
+docker compose up -d --force-recreate
+docker compose --profile workers up -d --force-recreate
+```
+
+
 ## Seeded Credentials
 
 After running `identity-service` migrations and seeder:
 
-- email: `admin@asset_monitoring_system.local`
+- email: `admin@assetmonitoringsystem.local`
 - password: `AdminPass123!`
 
 ## Sample API Calls
@@ -164,14 +214,15 @@ After running `identity-service` migrations and seeder:
 ```bash
 curl --request POST http://localhost:8080/api/v1/identity/auth/login \
   --header "Content-Type: application/json" \
-  --data '{"email":"admin@asset_monitoring_system.local","password":"AdminPass123!"}'
+  --data '{"email":"admin@assetmonitoringsystem.local","password":"AdminPass123!"}'
 ```
 
 You can also exercise the APIs in Swagger UI at `http://localhost:8081`.
 
 - Use the Identity `POST /api/v1/identity/auth/login` operation first.
 - Copy the `access_token` value.
-- Click `Authorize` in Swagger UI and paste `Bearer <access_token>` for protected Identity endpoints.
+- Click `Authorize` in Swagger UI and paste only the raw `access_token`.
+- Swagger UI will automatically send it as `Authorization: Bearer <access_token>`.
 
 ### Create An Asset
 
@@ -253,11 +304,21 @@ The repository includes example PHPUnit coverage for the highest-risk flows:
 - circuit breaker transitions and fallback behavior
 - user sync integration from identity payload to assignment projection
 - idempotent publish/consume flow around RabbitMQ message contracts
+- identity employee/user API flow
+- inventory asset CRUD and status validation
+- health heartbeat ingestion and inactive device processing
+- audit log recording and listing
+- notification dispatch, email/slack delivery persistence, and listing
 
 Run tests per service after the containers are built:
 
 ```bash
+docker compose exec identity-service php artisan test
+docker compose exec inventory-service php artisan test
 docker compose exec assignment-service php artisan test
+docker compose exec health-monitor-service php artisan test
+docker compose exec audit-service php artisan test
+docker compose exec notification-service php artisan test
 ```
 
 ## Swagger / OpenAPI

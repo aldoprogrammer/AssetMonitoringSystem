@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Str;
 
 class Employee extends Model
 {
@@ -17,6 +18,15 @@ class Employee extends Model
         'job_title',
         'email',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (self $employee): void {
+            if (blank($employee->uuid)) {
+                $employee->uuid = (string) Str::uuid();
+            }
+        });
+    }
 
     public function user(): HasOne
     {
