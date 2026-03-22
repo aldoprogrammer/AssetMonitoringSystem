@@ -2,28 +2,156 @@
 
 AssetMonitoringSystem is a production-oriented Laravel 11 microservices system for enterprise IT asset management. It uses a six-service architecture, RabbitMQ topic messaging, PostgreSQL per service, Docker multi-stage builds, an Nginx API gateway, and Terraform for AWS provisioning.
 
-## Table of Contents
+## 📋 Table of Contents
 
-- [Prerequisites](#prerequisites)
-- [Architecture](#architecture)
-- [System Design](#system-design)
-- [Key Architecture Principles](#key-architecture-principles)
-- [Microservices Overview](#microservices-overview)
-- [Service Dependencies Map](#service-dependencies-map)
-- [Repository Layout](#repository-layout)
-- [Local Run With Docker](#local-run-with-docker)
-- [Seeded Credentials](#seeded-credentials)
-- [Sample API Calls](#sample-api-calls)
-- [Message Flow](#message-flow)
-- [Circuit Breaker](#circuit-breaker)
-- [Testing](#testing)
-- [Swagger / OpenAPI](#swagger--openapi)
-- [Telescope](#telescope)
-- [Terraform](#terraform)
-- [Operational Notes](#operational-notes)
-- [Kubernetes](#kubernetes)
+- [🏗️ Architecture](#architecture)
+- [🧩 System Design](#system-design)
+- [🧠 Key Architecture Principles](#key-architecture-principles)
+- [📦 Microservices Overview](#microservices-overview)
+- [🔗 Service Dependencies Map](#service-dependencies-map)
+- [🎯 Prerequisites](#prerequisites)
+- [🗂️ Repository Layout](#repository-layout)
+- [🐳 Local Run With Docker](#local-run-with-docker)
+- [🔐 Seeded Credentials](#seeded-credentials)
+- [🧪 Sample API Calls](#sample-api-calls)
+- [📨 Message Flow](#message-flow)
+- [⚡ Circuit Breaker](#circuit-breaker)
+- [✅ Testing](#testing)
+- [📘 Swagger / OpenAPI](#swagger--openapi)
+- [🔭 Telescope](#telescope)
+- [☁️ Terraform](#terraform)
+- [🛠️ Operational Notes](#operational-notes)
+- [☸️ Kubernetes](#kubernetes)
 
-## Prerequisites
+## 🏗️ Architecture
+
+- API gateway: Nginx
+- Services: 6 Laravel microservices
+- Async messaging: RabbitMQ topic exchange
+- Database strategy: one PostgreSQL database per service
+- Dev observability: Telescope, Swagger UI, Mailpit
+- Infra-as-code: Terraform for AWS-oriented provisioning
+
+```text
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           Nginx API Gateway :8080                           │
+└──────────────┬────────────────┬────────────────┬───────────────┬────────────┘
+               │                │                │               │
+        ┌──────▼──────┐  ┌──────▼──────┐  ┌──────▼──────┐  ┌────▼────────┐
+        │  Identity   │  │  Inventory  │  │ Assignment  │  │   Health    │
+        │  Service    │  │   Service   │  │   Service   │  │  Monitor    │
+        │   :8000     │  │    :8000    │  │    :8000    │  │   :8000     │
+        └──────┬──────┘  └──────┬──────┘  └──────┬──────┘  └────┬────────┘
+               │                │                │               │
+        ┌──────▼──────┐  ┌──────▼──────┐  ┌──────▼──────┐  ┌────▼────────┐
+        │ Identity DB │  │Inventory DB │  │Assignment DB│  │ Health DB   │
+        │ PostgreSQL  │  │ PostgreSQL  │  │ PostgreSQL  │  │ PostgreSQL  │
+        └─────────────┘  └─────────────┘  └─────────────┘  └──────────────┘
+
+                                ┌───────────────────────────┐
+                                │ RabbitMQ Topic Exchange   │
+                                │ asset_monitoring_system   │
+                                └───────────┬───────────────┘
+                                            │
+                 ┌──────────────────────────┼──────────────────────────┐
+                 │                          │                          │
+         ┌───────▼────────┐        ┌────────▼───────┐         ┌────────▼────────┐
+         │ Audit Service  │        │ Notification   │         │ Assignment User │
+         │ + Consumer     │        │ Service        │         │ Sync Worker     │
+         │ + Audit DB     │        │ + Consumer     │         │                 │
+         └───────┬────────┘        │ + Notify DB    │         └─────────────────┘
+                 │                 └────────┬───────┘
+                 │                          │
+         ┌───────▼────────┐         ┌───────▼────────┐
+         │ Telescope      │         │ Mailpit :8025  │
+         │ per service    │         │ Email testing  │
+         └────────────────┘         └────────────────┘
+
+                    ┌──────────────────────────────────────┐
+                    │ Swagger UI :8081 / Kubernetes :9081 │
+                    └──────────────────────────────────────┘
+```
+
+## 🧩 System Design
+
+The system is designed as a modular microservices platform where each bounded context owns its own data, HTTP API, and async event responsibilities. Synchronous flows go through the gateway and internal REST calls, while cross-service propagation happens through RabbitMQ events so downstream consumers can stay decoupled.
+
+This gives the project a clean separation between identity, inventory, assignment, health telemetry, auditing, and notifications. It also makes it easier to test failure handling, event-driven processing, and independent service scaling.
+
+## 🧠 Key Architecture Principles
+
+- Database per service to avoid tight coupling at the persistence layer
+- API gateway as the single local entry point
+- Event-driven integration for cross-service side effects
+- Idempotent consumers for safer message retries
+- Public resource lookup by UUID instead of leaking internal numeric IDs
+- Local-first developer tooling with Docker Compose, Swagger, Telescope, and Kubernetes support
+
+## 📦 Microservices Overview
+
+- `identity-service`
+  Handles authentication, Passport token issuance, employees, users, and `user.*` events.
+- `inventory-service`
+  Owns IT asset records, asset availability checks, and asset lookup endpoints.
+- `assignment-service`
+  Handles checkout/checkin, local user projection, and inventory circuit breaker logic.
+- `health-monitor-service`
+  Stores device heartbeats and detects inactive devices.
+- `audit-service`
+  Consumes platform events and stores immutable audit logs.
+- `notification-service`
+  Consumes relevant events and sends email or Slack-style notifications.
+
+## 🔗 Service Dependencies Map
+
+```text
+Client
+  |
+  v
+Nginx Gateway
+  |
+  +--> identity-service ------> identity-db
+  |
+  +--> inventory-service -----> inventory-db
+  |
+  +--> assignment-service ----> assignment-db
+  |         |
+  |         +--> inventory-service (sync validation)
+  |
+  +--> health-monitor-service -> health-monitor-db
+  |
+  +--> audit-service ---------> audit-db
+  |
+  +--> notification-service --> notification-db
+
+RabbitMQ topic exchange
+  |
+  +--> assignment-user-sync-worker
+  +--> audit-consumer-worker
+  +--> notification-consumer-worker
+  +--> health-monitor-scanner
+```
+
+### Service Interaction Flow
+
+```text
+Identity Service ──► RabbitMQ ──► Assignment User Sync Worker
+        │
+        └──────────────► Assignment Service
+
+Inventory Service ◄────────────── Assignment Service
+
+Assignment Service ──► RabbitMQ ──┬──► Audit Consumer Worker ──► Audit Service
+                                  └──► Notification Consumer ──► Notification Service
+
+Health Monitor Service ──► RabbitMQ ──┬──► Audit Consumer Worker
+                                      └──► Notification Consumer
+
+Swagger UI ──► Nginx Gateway ──► All HTTP API Services
+Mailpit  ◄──────────────────── Notification Service
+```
+
+## 🎯 Prerequisites
 
 Before you begin, make sure you understand both:
 
