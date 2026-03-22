@@ -16,7 +16,7 @@ class EmployeeService
         return $this->employees->paginate($perPage);
     }
 
-    public function findOrFail(int $id): Employee
+    public function findOrFail(string $id): Employee
     {
         return $this->employees->findOrFail($id);
     }
@@ -26,7 +26,7 @@ class EmployeeService
         return $this->employees->create($payload);
     }
 
-    public function update(int $id, array $payload): Employee
+    public function update(string $id, array $payload): Employee
     {
         $employee = $this->employees->findOrFail($id);
 

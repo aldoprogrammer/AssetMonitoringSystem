@@ -56,4 +56,33 @@ class EmployeeUserApiTest extends TestCase
 
         $this->assertTrue(Str::isUuid($userResponse->json('data.id')));
     }
+
+    public function test_lookup_endpoints_return_human_friendly_not_found_messages_for_unknown_uuids(): void
+    {
+        $admin = User::create([
+            'name' => 'Admin',
+            'email' => 'admin@example.com',
+            'password' => 'AdminPass123!',
+            'role' => User::ROLE_ADMIN,
+        ]);
+
+        Passport::actingAs($admin);
+
+        $missingUserId = (string) Str::uuid();
+        $missingEmployeeId = (string) Str::uuid();
+
+        $this->getJson(route('users.show', ['user' => $missingUserId], absolute: false))
+            ->assertNotFound()
+            ->assertExactJson([
+                'message' => "No user found with ID '{$missingUserId}'.",
+                'error' => 'resource_not_found',
+            ]);
+
+        $this->getJson(route('employees.show', ['employee' => $missingEmployeeId], absolute: false))
+            ->assertNotFound()
+            ->assertExactJson([
+                'message' => "No employee found with ID '{$missingEmployeeId}'.",
+                'error' => 'resource_not_found',
+            ]);
+    }
 }

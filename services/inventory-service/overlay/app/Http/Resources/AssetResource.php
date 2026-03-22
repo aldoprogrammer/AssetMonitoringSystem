@@ -10,7 +10,7 @@ class AssetResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
+            'id' => $this->uuid,
             'serial_number' => $this->serial_number,
             'asset_tag' => $this->asset_tag,
             'specs' => $this->specs,

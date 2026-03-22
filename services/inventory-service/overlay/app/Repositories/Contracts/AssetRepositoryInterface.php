@@ -13,7 +13,7 @@ interface AssetRepositoryInterface
 
     public function update(Asset $asset, array $attributes): Asset;
 
-    public function findOrFail(int $id): Asset;
+    public function findOrFail(string $id): Asset;
 
     public function findBySerialNumber(string $serialNumber): Asset;
 }

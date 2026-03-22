@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Services\UserSyncService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class UserSyncIntegrationTest extends TestCase
@@ -28,5 +29,17 @@ class UserSyncIntegrationTest extends TestCase
             'email' => 'ava.admin@assetmonitoringsystem.local',
             'role' => 'admin',
         ]);
+    }
+
+    public function test_checkin_returns_human_friendly_not_found_message_for_unknown_uuid(): void
+    {
+        $missingAssignmentId = (string) Str::uuid();
+
+        $this->postJson(route('assignments.checkin', ['assignment' => $missingAssignmentId], absolute: false))
+            ->assertNotFound()
+            ->assertExactJson([
+                'message' => "No assignment found with ID '{$missingAssignmentId}'.",
+                'error' => 'resource_not_found',
+            ]);
     }
 }

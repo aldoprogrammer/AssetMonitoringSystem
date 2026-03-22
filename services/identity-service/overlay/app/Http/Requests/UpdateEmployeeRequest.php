@@ -14,7 +14,9 @@ class UpdateEmployeeRequest extends FormRequest
 
     public function rules(): array
     {
-        $employeeId = (int) $this->route('employee');
+        $employeeId = \App\Models\Employee::query()
+            ->where('uuid', (string) $this->route('employee'))
+            ->value('id');
 
         return [
             'employee_code' => ['sometimes', 'string', 'max:50', Rule::unique('employees', 'employee_code')->ignore($employeeId)],

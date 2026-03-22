@@ -13,5 +13,5 @@ interface UserRepositoryInterface
 
     public function update(User $user, array $attributes): User;
 
-    public function findOrFail(int $id): User;
+    public function findOrFail(string $id): User;
 }

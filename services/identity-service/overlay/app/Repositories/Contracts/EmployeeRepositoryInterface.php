@@ -13,7 +13,7 @@ interface EmployeeRepositoryInterface
 
     public function update(Employee $employee, array $attributes): Employee;
 
-    public function findOrFail(int $id): Employee;
+    public function findOrFail(string $id): Employee;
 
     public function findByUuidOrFail(string $uuid): Employee;
 }

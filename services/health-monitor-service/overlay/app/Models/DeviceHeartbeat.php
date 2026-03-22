@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class DeviceHeartbeat extends Model
 {
@@ -13,6 +14,7 @@ class DeviceHeartbeat extends Model
     public const STATUS_INACTIVE = 'inactive';
 
     protected $fillable = [
+        'uuid',
         'device_serial_number',
         'status',
         'metadata',
@@ -25,5 +27,14 @@ class DeviceHeartbeat extends Model
             'metadata' => 'array',
             'last_seen_at' => 'datetime',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (self $heartbeat): void {
+            if (blank($heartbeat->uuid)) {
+                $heartbeat->uuid = (string) Str::uuid();
+            }
+        });
     }
 }

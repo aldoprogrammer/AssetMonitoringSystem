@@ -18,9 +18,9 @@ class AssignmentRepository implements AssignmentRepositoryInterface
         return Assignment::create($attributes);
     }
 
-    public function findOrFail(int $id): Assignment
+    public function findOrFail(string $id): Assignment
     {
-        return Assignment::findOrFail($id);
+        return Assignment::query()->where('uuid', $id)->firstOrFail();
     }
 
     public function update(Assignment $assignment, array $attributes): Assignment

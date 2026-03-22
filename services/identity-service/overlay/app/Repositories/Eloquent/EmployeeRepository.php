@@ -25,9 +25,9 @@ class EmployeeRepository implements EmployeeRepositoryInterface
         return $employee->refresh();
     }
 
-    public function findOrFail(int $id): Employee
+    public function findOrFail(string $id): Employee
     {
-        return Employee::findOrFail($id);
+        return Employee::where('uuid', $id)->firstOrFail();
     }
 
     public function findByUuidOrFail(string $uuid): Employee

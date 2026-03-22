@@ -15,7 +15,9 @@ class UpdateUserRequest extends FormRequest
 
     public function rules(): array
     {
-        $userId = (int) $this->route('user');
+        $userId = \App\Models\User::query()
+            ->where('uuid', (string) $this->route('user'))
+            ->value('id');
 
         return [
             'employee_id' => ['nullable', 'uuid', 'exists:employees,uuid'],

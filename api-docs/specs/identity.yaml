@@ -31,24 +31,36 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  token_type:
-                    type: string
-                    example: Bearer
-                  access_token:
-                    type: string
-                  user:
-                    $ref: '#/components/schemas/User'
+                $ref: '#/components/schemas/LoginResponse'
   /api/v1/identity/users:
     get:
       tags: [Identity]
       summary: List users
       security:
         - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: Page number for paginated results.
+          schema:
+            type: integer
+            minimum: 1
+            example: 1
+        - name: per_page
+          in: query
+          description: Optional page size. The backend currently defaults to 15 items.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            example: 15
       responses:
         '200':
           description: User collection
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserCollectionResponse'
     post:
       tags: [Identity]
       summary: Create user
@@ -86,25 +98,41 @@ paths:
               schema:
                 $ref: '#/components/schemas/UserEnvelope'
   /api/v1/identity/users/{user}:
-    parameters:
-      - name: user
-        in: path
-        required: true
-        schema:
-          type: integer
     get:
       tags: [Identity]
       summary: Get user
       security:
         - bearerAuth: []
+      parameters:
+        - name: user
+          in: path
+          required: true
+          description: Public user UUID returned by the API.
+          schema:
+            type: string
+            format: uuid
+            example: ffc799f0-1afa-4c65-93fd-de1b96e6205d
       responses:
         '200':
           description: User detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserEnvelope'
     put:
       tags: [Identity]
       summary: Update user
       security:
         - bearerAuth: []
+      parameters:
+        - name: user
+          in: path
+          required: true
+          description: Public user UUID returned by the API.
+          schema:
+            type: string
+            format: uuid
+            example: ffc799f0-1afa-4c65-93fd-de1b96e6205d
       requestBody:
         required: true
         content:
@@ -112,28 +140,61 @@ paths:
             schema:
               type: object
               properties:
+                employee_id:
+                  type: string
+                  format: uuid
+                  example: 7d824845-401b-4d93-afab-9a3f9c709a6c
+                  description: Existing employee UUID to associate with this user.
                 name:
                   type: string
+                  example: J. Al-Farez Koncet
                 email:
                   type: string
                   format: email
+                  example: user@example.com
                 password:
                   type: string
+                  example: NewPassword123!
                 role:
                   type: string
                   enum: [admin, staff]
+                  example: staff
       responses:
         '200':
           description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserEnvelope'
   /api/v1/identity/employees:
     get:
       tags: [Identity]
       summary: List employees
       security:
         - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: Page number for paginated results.
+          schema:
+            type: integer
+            minimum: 1
+            example: 1
+        - name: per_page
+          in: query
+          description: Optional page size. The backend currently defaults to 15 items.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            example: 15
       responses:
         '200':
           description: Employee collection
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmployeeCollectionResponse'
     post:
       tags: [Identity]
       summary: Create employee
@@ -162,35 +223,76 @@ paths:
       responses:
         '200':
           description: Created employee
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmployeeEnvelope'
   /api/v1/identity/employees/{employee}:
-    parameters:
-      - name: employee
-        in: path
-        required: true
-        schema:
-          type: integer
     get:
       tags: [Identity]
       summary: Get employee
       security:
         - bearerAuth: []
+      parameters:
+        - name: employee
+          in: path
+          required: true
+          description: Public employee UUID returned by the API.
+          schema:
+            type: string
+            format: uuid
+            example: 0909a709-f8d5-439b-a868-942c9eaf6605
       responses:
         '200':
           description: Employee detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmployeeEnvelope'
     put:
       tags: [Identity]
       summary: Update employee
       security:
         - bearerAuth: []
+      parameters:
+        - name: employee
+          in: path
+          required: true
+          description: Public employee UUID returned by the API.
+          schema:
+            type: string
+            format: uuid
+            example: 0909a709-f8d5-439b-a868-942c9eaf6605
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
+              properties:
+                employee_code:
+                  type: string
+                  example: EMP-1002
+                full_name:
+                  type: string
+                  example: Farez
+                department:
+                  type: string
+                  example: IT Development
+                job_title:
+                  type: string
+                  example: Programmer
+                email:
+                  type: string
+                  format: email
+                  example: farez@example.com
       responses:
         '200':
           description: Updated employee
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmployeeEnvelope'
 components:
   securitySchemes:
     bearerAuth:
@@ -198,6 +300,40 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
+    PaginationLinks:
+      type: object
+      properties:
+        first:
+          type: string
+          nullable: true
+        last:
+          type: string
+          nullable: true
+        prev:
+          type: string
+          nullable: true
+        next:
+          type: string
+          nullable: true
+    PaginationMeta:
+      type: object
+      properties:
+        current_page:
+          type: integer
+        from:
+          type: integer
+          nullable: true
+        last_page:
+          type: integer
+        path:
+          type: string
+        per_page:
+          type: integer
+        to:
+          type: integer
+          nullable: true
+        total:
+          type: integer
     User:
       type: object
       properties:
@@ -213,8 +349,91 @@ components:
         role:
           type: string
           enum: [admin, staff]
+        employee:
+          $ref: '#/components/schemas/UserEmployee'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    UserEmployee:
+      type: object
+      nullable: true
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        employee_code:
+          type: string
+        department:
+          type: string
+        job_title:
+          type: string
     UserEnvelope:
       type: object
       properties:
         data:
+          $ref: '#/components/schemas/User'
+    UserCollectionResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+        links:
+          $ref: '#/components/schemas/PaginationLinks'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+    Employee:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        employee_code:
+          type: string
+        full_name:
+          type: string
+        department:
+          type: string
+        job_title:
+          type: string
+        email:
+          type: string
+          format: email
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    EmployeeEnvelope:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/Employee'
+    EmployeeCollectionResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Employee'
+        links:
+          $ref: '#/components/schemas/PaginationLinks'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+    LoginResponse:
+      type: object
+      properties:
+        token_type:
+          type: string
+          example: Bearer
+        access_token:
+          type: string
+        user:
           $ref: '#/components/schemas/User'

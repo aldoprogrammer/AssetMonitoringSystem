@@ -10,7 +10,7 @@ class DeviceHeartbeatResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
+            'id' => $this->uuid,
             'device_serial_number' => $this->device_serial_number,
             'status' => $this->status,
             'metadata' => $this->metadata,

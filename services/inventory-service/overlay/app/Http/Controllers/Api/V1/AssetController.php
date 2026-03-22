@@ -7,8 +7,10 @@ use App\Http\Requests\StoreAssetRequest;
 use App\Http\Requests\UpdateAssetRequest;
 use App\Http\Resources\AssetResource;
 use App\Services\AssetService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class AssetController extends Controller
 {
@@ -26,18 +28,38 @@ class AssetController extends Controller
         return AssetResource::make($this->assets->create($request->validated()));
     }
 
-    public function show(int $asset): AssetResource
+    public function show(string $asset): AssetResource|JsonResponse
     {
-        return AssetResource::make($this->assets->findOrFail($asset));
+        try {
+            return AssetResource::make($this->assets->findOrFail($asset));
+        } catch (ModelNotFoundException|NotFoundHttpException) {
+            return $this->notFoundResponse('asset', 'ID', $asset);
+        }
     }
 
-    public function update(UpdateAssetRequest $request, int $asset): AssetResource
+    public function update(UpdateAssetRequest $request, string $asset): AssetResource|JsonResponse
     {
-        return AssetResource::make($this->assets->update($asset, $request->validated()));
+        try {
+            return AssetResource::make($this->assets->update($asset, $request->validated()));
+        } catch (ModelNotFoundException|NotFoundHttpException) {
+            return $this->notFoundResponse('asset', 'ID', $asset);
+        }
     }
 
     public function validateStatus(string $serialNumber): JsonResponse
     {
-        return response()->json($this->assets->validateAvailability($serialNumber));
+        try {
+            return response()->json($this->assets->validateAvailability($serialNumber));
+        } catch (ModelNotFoundException|NotFoundHttpException) {
+            return $this->notFoundResponse('asset', 'serial number', $serialNumber);
+        }
+    }
+
+    private function notFoundResponse(string $resource, string $lookupLabel, string $lookupValue): JsonResponse
+    {
+        return response()->json([
+            'message' => "No {$resource} found with {$lookupLabel} '{$lookupValue}'.",
+            'error' => 'resource_not_found',
+        ], 404);
     }
 }

@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class AssetApiTest extends TestCase
@@ -35,6 +36,25 @@ class AssetApiTest extends TestCase
                 'serial_number' => 'LAP-1001',
                 'status' => 'available',
                 'available' => true,
+            ]);
+    }
+
+    public function test_lookup_endpoints_return_human_friendly_not_found_messages(): void
+    {
+        $missingAssetId = (string) Str::uuid();
+
+        $this->getJson(route('assets.show', ['asset' => $missingAssetId], absolute: false))
+            ->assertNotFound()
+            ->assertExactJson([
+                'message' => "No asset found with ID '{$missingAssetId}'.",
+                'error' => 'resource_not_found',
+            ]);
+
+        $this->getJson('/api/v1/assets/serial/UNKNOWN-404/status')
+            ->assertNotFound()
+            ->assertExactJson([
+                'message' => "No asset found with serial number 'UNKNOWN-404'.",
+                'error' => 'resource_not_found',
             ]);
     }
 }

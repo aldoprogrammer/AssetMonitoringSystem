@@ -15,7 +15,9 @@ class UpdateAssetRequest extends FormRequest
 
     public function rules(): array
     {
-        $assetId = (int) $this->route('asset');
+        $assetId = \App\Models\Asset::query()
+            ->where('uuid', (string) $this->route('asset'))
+            ->value('id');
 
         return [
             'serial_number' => ['sometimes', 'string', 'max:100', Rule::unique('assets', 'serial_number')->ignore($assetId)],

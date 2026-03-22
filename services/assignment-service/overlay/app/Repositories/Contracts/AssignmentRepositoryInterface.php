@@ -11,7 +11,7 @@ interface AssignmentRepositoryInterface
 
     public function create(array $attributes): Assignment;
 
-    public function findOrFail(int $id): Assignment;
+    public function findOrFail(string $id): Assignment;
 
     public function update(Assignment $assignment, array $attributes): Assignment;
 

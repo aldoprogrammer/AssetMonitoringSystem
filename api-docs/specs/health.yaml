@@ -21,9 +21,48 @@ paths:
               properties:
                 device_serial_number:
                   type: string
+                  example: LAP-1001
                 metadata:
                   type: object
                   additionalProperties: true
+                  example:
+                    ip_address: 10.0.10.24
+                    battery: 94
       responses:
         '200':
           description: Heartbeat stored
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HeartbeatEnvelope'
+components:
+  schemas:
+    Heartbeat:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        device_serial_number:
+          type: string
+        status:
+          type: string
+          enum: [online, inactive]
+        metadata:
+          type: object
+          additionalProperties: true
+        last_seen_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    HeartbeatEnvelope:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/Heartbeat'

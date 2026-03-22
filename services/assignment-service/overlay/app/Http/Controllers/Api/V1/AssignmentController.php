@@ -6,7 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\CheckoutAssignmentRequest;
 use App\Http\Resources\AssignmentResource;
 use App\Services\AssignmentService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class AssignmentController extends Controller
 {
@@ -24,8 +27,15 @@ class AssignmentController extends Controller
         return AssignmentResource::make($this->assignments->checkout($request->validated()));
     }
 
-    public function checkin(int $assignment): AssignmentResource
+    public function checkin(string $assignment): AssignmentResource|JsonResponse
     {
-        return AssignmentResource::make($this->assignments->checkin($assignment));
+        try {
+            return AssignmentResource::make($this->assignments->checkin($assignment));
+        } catch (ModelNotFoundException|NotFoundHttpException) {
+            return response()->json([
+                'message' => "No assignment found with ID '{$assignment}'.",
+                'error' => 'resource_not_found',
+            ], 404);
+        }
     }
 }

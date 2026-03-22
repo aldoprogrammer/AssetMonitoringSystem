@@ -13,7 +13,8 @@ services:
       - ./services/identity-service/overlay/config:/var/www/app/config
       - ./services/identity-service/overlay/database:/var/www/app/database
       - ./services/identity-service/overlay/routes/api.php:/var/www/app/routes/api.php
-      - ./services/identity-service/overlay/tests:/var/www/app/tests
+      - ./services/identity-service/overlay/tests/Feature:/var/www/app/tests/Feature
+      - ./services/identity-service/overlay/tests/Unit:/var/www/app/tests/Unit
       - ./services/identity-service/overlay/.env.example:/var/www/app/.env.example
 
   inventory-service:
@@ -29,7 +30,8 @@ services:
       - ./services/inventory-service/overlay/config:/var/www/app/config
       - ./services/inventory-service/overlay/database:/var/www/app/database
       - ./services/inventory-service/overlay/routes/api.php:/var/www/app/routes/api.php
-      - ./services/inventory-service/overlay/tests:/var/www/app/tests
+      - ./services/inventory-service/overlay/tests/Feature:/var/www/app/tests/Feature
+      - ./services/inventory-service/overlay/tests/Unit:/var/www/app/tests/Unit
       - ./services/inventory-service/overlay/.env.example:/var/www/app/.env.example
 
   assignment-service:
@@ -48,7 +50,8 @@ services:
       - ./services/assignment-service/overlay/config:/var/www/app/config
       - ./services/assignment-service/overlay/database:/var/www/app/database
       - ./services/assignment-service/overlay/routes/api.php:/var/www/app/routes/api.php
-      - ./services/assignment-service/overlay/tests:/var/www/app/tests
+      - ./services/assignment-service/overlay/tests/Feature:/var/www/app/tests/Feature
+      - ./services/assignment-service/overlay/tests/Unit:/var/www/app/tests/Unit
       - ./services/assignment-service/overlay/.env.example:/var/www/app/.env.example
 
   assignment-user-sync-worker:
@@ -67,7 +70,8 @@ services:
       - ./services/assignment-service/overlay/config:/var/www/app/config
       - ./services/assignment-service/overlay/database:/var/www/app/database
       - ./services/assignment-service/overlay/routes/api.php:/var/www/app/routes/api.php
-      - ./services/assignment-service/overlay/tests:/var/www/app/tests
+      - ./services/assignment-service/overlay/tests/Feature:/var/www/app/tests/Feature
+      - ./services/assignment-service/overlay/tests/Unit:/var/www/app/tests/Unit
       - ./services/assignment-service/overlay/.env.example:/var/www/app/.env.example
 
   health-monitor-service:
@@ -84,7 +88,8 @@ services:
       - ./services/health-monitor-service/overlay/config:/var/www/app/config
       - ./services/health-monitor-service/overlay/database:/var/www/app/database
       - ./services/health-monitor-service/overlay/routes/api.php:/var/www/app/routes/api.php
-      - ./services/health-monitor-service/overlay/tests:/var/www/app/tests
+      - ./services/health-monitor-service/overlay/tests/Feature:/var/www/app/tests/Feature
+      - ./services/health-monitor-service/overlay/tests/Unit:/var/www/app/tests/Unit
       - ./services/health-monitor-service/overlay/.env.example:/var/www/app/.env.example
 
   health-monitor-scanner:
@@ -101,7 +106,8 @@ services:
       - ./services/health-monitor-service/overlay/config:/var/www/app/config
       - ./services/health-monitor-service/overlay/database:/var/www/app/database
       - ./services/health-monitor-service/overlay/routes/api.php:/var/www/app/routes/api.php
-      - ./services/health-monitor-service/overlay/tests:/var/www/app/tests
+      - ./services/health-monitor-service/overlay/tests/Feature:/var/www/app/tests/Feature
+      - ./services/health-monitor-service/overlay/tests/Unit:/var/www/app/tests/Unit
       - ./services/health-monitor-service/overlay/.env.example:/var/www/app/.env.example
 
   audit-service:
@@ -118,7 +124,8 @@ services:
       - ./services/audit-service/overlay/config:/var/www/app/config
       - ./services/audit-service/overlay/database:/var/www/app/database
       - ./services/audit-service/overlay/routes/api.php:/var/www/app/routes/api.php
-      - ./services/audit-service/overlay/tests:/var/www/app/tests
+      - ./services/audit-service/overlay/tests/Feature:/var/www/app/tests/Feature
+      - ./services/audit-service/overlay/tests/Unit:/var/www/app/tests/Unit
       - ./services/audit-service/overlay/.env.example:/var/www/app/.env.example
 
   audit-consumer-worker:
@@ -135,7 +142,8 @@ services:
       - ./services/audit-service/overlay/config:/var/www/app/config
       - ./services/audit-service/overlay/database:/var/www/app/database
       - ./services/audit-service/overlay/routes/api.php:/var/www/app/routes/api.php
-      - ./services/audit-service/overlay/tests:/var/www/app/tests
+      - ./services/audit-service/overlay/tests/Feature:/var/www/app/tests/Feature
+      - ./services/audit-service/overlay/tests/Unit:/var/www/app/tests/Unit
       - ./services/audit-service/overlay/.env.example:/var/www/app/.env.example
 
   notification-service:
@@ -154,7 +162,8 @@ services:
       - ./services/notification-service/overlay/database:/var/www/app/database
       - ./services/notification-service/overlay/resources:/var/www/app/resources
       - ./services/notification-service/overlay/routes/api.php:/var/www/app/routes/api.php
-      - ./services/notification-service/overlay/tests:/var/www/app/tests
+      - ./services/notification-service/overlay/tests/Feature:/var/www/app/tests/Feature
+      - ./services/notification-service/overlay/tests/Unit:/var/www/app/tests/Unit
       - ./services/notification-service/overlay/.env.example:/var/www/app/.env.example
 
   notification-consumer-worker:
@@ -173,5 +182,6 @@ services:
       - ./services/notification-service/overlay/database:/var/www/app/database
       - ./services/notification-service/overlay/resources:/var/www/app/resources
       - ./services/notification-service/overlay/routes/api.php:/var/www/app/routes/api.php
-      - ./services/notification-service/overlay/tests:/var/www/app/tests
+      - ./services/notification-service/overlay/tests/Feature:/var/www/app/tests/Feature
+      - ./services/notification-service/overlay/tests/Unit:/var/www/app/tests/Unit
       - ./services/notification-service/overlay/.env.example:/var/www/app/.env.example

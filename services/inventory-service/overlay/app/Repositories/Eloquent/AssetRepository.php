@@ -25,9 +25,9 @@ class AssetRepository implements AssetRepositoryInterface
         return $asset->refresh();
     }
 
-    public function findOrFail(int $id): Asset
+    public function findOrFail(string $id): Asset
     {
-        return Asset::findOrFail($id);
+        return Asset::query()->where('uuid', $id)->firstOrFail();
     }
 
     public function findBySerialNumber(string $serialNumber): Asset

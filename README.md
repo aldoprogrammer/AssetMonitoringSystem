@@ -74,6 +74,19 @@ docker compose build
 
 For day-to-day development, source code and tests are bind-mounted into the PHP containers through `docker-compose.override.yml`. That means normal changes in `services/*/overlay/app`, `config`, `database`, `routes`, `tests`, and `resources` are live without rebuilding the image.
 
+Because the services run as long-lived PHP HTTP processes inside containers, changes to `routes`, `bootstrap`, auth wiring, and some config may still require a service restart or recreate before the HTTP endpoint behavior catches up:
+
+```bash
+docker compose restart identity-service inventory-service assignment-service
+```
+
+If the change affects mounted files plus the container definition itself, use:
+
+```bash
+docker compose up -d --force-recreate
+docker compose --profile workers up -d --force-recreate
+```
+
 Rebuild the images only when you change:
 
 - `docker/service.Dockerfile`

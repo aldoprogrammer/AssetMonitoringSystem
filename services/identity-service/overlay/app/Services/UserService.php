@@ -21,7 +21,7 @@ class UserService
         return $this->users->paginate($perPage);
     }
 
-    public function findOrFail(int $id): User
+    public function findOrFail(string $id): User
     {
         return $this->users->findOrFail($id);
     }
@@ -35,7 +35,7 @@ class UserService
         return $user;
     }
 
-    public function update(int $id, array $payload): User
+    public function update(string $id, array $payload): User
     {
         $payload = $this->normalizeEmployeeReference($payload);
         $user = $this->users->findOrFail($id);

@@ -16,7 +16,7 @@ class AssetService
         return $this->assets->paginate($perPage);
     }
 
-    public function findOrFail(int $id): Asset
+    public function findOrFail(string $id): Asset
     {
         return $this->assets->findOrFail($id);
     }
@@ -26,7 +26,7 @@ class AssetService
         return $this->assets->create($payload);
     }
 
-    public function update(int $id, array $payload): Asset
+    public function update(string $id, array $payload): Asset
     {
         $asset = $this->assets->findOrFail($id);
 

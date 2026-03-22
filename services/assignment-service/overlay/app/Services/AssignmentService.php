@@ -27,7 +27,7 @@ class AssignmentService
 
     public function checkout(array $payload): Assignment
     {
-        $user = $this->users->findByExternalId((int) $payload['user_id']);
+        $user = $this->users->findByExternalId($payload['user_id']);
 
         if ($user === null) {
             throw ValidationException::withMessages([
@@ -71,7 +71,7 @@ class AssignmentService
         return $assignment;
     }
 
-    public function checkin(int $id): Assignment
+    public function checkin(string $id): Assignment
     {
         $assignment = $this->assignments->findOrFail($id);
 

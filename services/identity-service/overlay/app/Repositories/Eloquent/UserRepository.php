@@ -25,8 +25,8 @@ class UserRepository implements UserRepositoryInterface
         return $user->refresh()->load('employee');
     }
 
-    public function findOrFail(int $id): User
+    public function findOrFail(string $id): User
     {
-        return User::with('employee')->findOrFail($id);
+        return User::with('employee')->where('uuid', $id)->firstOrFail();
     }
 }
