@@ -13,13 +13,23 @@ class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
     {
         $this->hideSensitiveRequestDetails();
 
-        config()->set('telescope.enabled', filter_var(env('TELESCOPE_ENABLED', true), FILTER_VALIDATE_BOOL));
+        $telescopeEnabled = filter_var(env('TELESCOPE_ENABLED', true), FILTER_VALIDATE_BOOL);
+        $recordAllEntries = filter_var(env('TELESCOPE_RECORD_ALL', $telescopeEnabled), FILTER_VALIDATE_BOOL);
+
+        config()->set('telescope.enabled', $telescopeEnabled);
         config()->set('telescope.path', env('TELESCOPE_PATH', 'identity/telescope'));
 
         $isLocal = $this->app->environment('local');
 
-        Telescope::filter(function (IncomingEntry $entry) use ($isLocal): bool {
-            return $isLocal
+        Telescope::filter(function (IncomingEntry $entry) use ($isLocal, $recordAllEntries): bool {
+            $requestPath = '/' . ltrim((string) data_get($entry->content, 'uri', data_get($entry->content, 'path', '')), '/');
+
+            if ($requestPath === '/up') {
+                return false;
+            }
+
+            return $recordAllEntries
+                || $isLocal
                 || $entry->isReportableException()
                 || $entry->isFailedRequest()
                 || $entry->isFailedJob()

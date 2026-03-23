@@ -1,12 +1,38 @@
+# IDE & System
 .idea/
 .vscode/
-.terraform/
-*.tfstate
-*.tfstate.*
-crash.log
 .DS_Store
 Thumbs.db
+*.log
+crash.log
+
+# Dependencies
 vendor/
 node_modules/
+
+# Environment & Secrets
 .env
-services/*/overlay/.env
+.env.*
+services/**/.env
+services/**/.env.*
+*.htpasswd
+
+# Terraform Core
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+
+# Terraform Sensitive Data
+terraform.tfvars
+terraform.tfvars.json
+*.tfvars
+*.tfvars.json
+
+# Infrastructure Outputs (BAHAYA: Jangan di-push)
+terraform-outputs.json
+.terraform.lock.hcl
+
+# Docker & Temporary
+.docker-build-cache/
+docker-compose.override.yml

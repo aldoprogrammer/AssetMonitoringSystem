@@ -27,7 +27,9 @@ class AppServiceProvider extends ServiceProvider
 
     private function registerTelescope(): void
     {
-        if (! $this->app->environment('local') || ! class_exists(LaravelTelescopeServiceProvider::class)) {
+        $telescopeEnabled = filter_var(env('TELESCOPE_ENABLED', false), FILTER_VALIDATE_BOOL);
+
+        if ((! $this->app->environment('local') && ! $telescopeEnabled) || ! class_exists(LaravelTelescopeServiceProvider::class)) {
             return;
         }
 

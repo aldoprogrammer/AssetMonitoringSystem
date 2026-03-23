@@ -145,6 +145,13 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $exceptions->render(function (QueryException $exception, $request) use ($isApiRequest) {
             if ($isApiRequest($request)) {
+                error_log(sprintf(
+                    'QueryException: %s in %s:%d',
+                    $exception->getMessage(),
+                    $exception->getFile(),
+                    $exception->getLine(),
+                ));
+
                 return response()->json([
                     'message' => 'The service could not complete the request because of a data access problem.',
                     'error' => 'database_error',
@@ -156,6 +163,14 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $exceptions->render(function (\Throwable $exception, $request) use ($isApiRequest) {
             if ($isApiRequest($request)) {
+                error_log(sprintf(
+                    'Unhandled exception [%s]: %s in %s:%d',
+                    $exception::class,
+                    $exception->getMessage(),
+                    $exception->getFile(),
+                    $exception->getLine(),
+                ));
+
                 return response()->json([
                     'message' => 'Something went wrong while processing the request. Please try again.',
                     'error' => 'internal_server_error',

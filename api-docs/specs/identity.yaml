@@ -3,9 +3,9 @@ info:
   title: AssetMonitoringSystem Identity Service
   version: 1.0.0
 servers:
-  - url: http://localhost:8080
+  - url: /
 paths:
-  /api/v1/identity/auth/login:
+  /api/v1/auth/login:
     post:
       tags: [Identity]
       summary: Authenticate a user and return a Passport access token
@@ -32,7 +32,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/LoginResponse'
-  /api/v1/identity/users:
+  /api/v1/users:
     get:
       tags: [Identity]
       summary: List users
@@ -97,7 +97,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserEnvelope'
-  /api/v1/identity/users/{user}:
+  /api/v1/users/{user}:
     get:
       tags: [Identity]
       summary: Get user
@@ -166,7 +166,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserEnvelope'
-  /api/v1/identity/employees:
+  /api/v1/employees:
     get:
       tags: [Identity]
       summary: List employees
@@ -227,7 +227,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EmployeeEnvelope'
-  /api/v1/identity/employees/{employee}:
+  /api/v1/employees/{employee}:
     get:
       tags: [Identity]
       summary: Get employee

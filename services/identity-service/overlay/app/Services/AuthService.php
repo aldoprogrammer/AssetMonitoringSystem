@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class AuthService
 {
@@ -18,7 +19,19 @@ class AuthService
             ]);
         }
 
-        $token = $user->createToken('asset-monitoring-system-api');
+        try {
+            $token = $user->createToken('asset-monitoring-system-api');
+        } catch (Throwable $exception) {
+            error_log(sprintf(
+                'Failed to create Passport token for %s: %s in %s:%d',
+                $email,
+                $exception->getMessage(),
+                $exception->getFile(),
+                $exception->getLine(),
+            ));
+
+            throw $exception;
+        }
 
         return [
             'token_type' => 'Bearer',
