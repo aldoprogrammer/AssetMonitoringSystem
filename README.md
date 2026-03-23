@@ -1,4 +1,4 @@
-# AssetMonitoringSystem
+# Asset Monitoring System
 
 AssetMonitoringSystem is a production-oriented Laravel 11 microservices system for enterprise IT asset management. It uses a six-service architecture, RabbitMQ topic messaging, PostgreSQL per service, Docker multi-stage builds, an Nginx API gateway, and Terraform for AWS provisioning.
 
