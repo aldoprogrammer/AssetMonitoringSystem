@@ -3,6 +3,7 @@ project_name          = "assetmonitoringsystem"
 environment           = "dev"
 vpc_id                = "vpc-xxxxxxxx"
 private_subnet_ids    = ["subnet-aaaaaaaa", "subnet-bbbbbbbb"]
+public_subnet_ids     = ["subnet-publicaaaa", "subnet-publicbbbb"]
 db_security_group_ids = ["sg-db123456"]
 mq_security_group_ids = ["sg-mq123456"]
 db_master_password    = "replace-me"

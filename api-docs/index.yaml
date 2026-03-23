@@ -4,8 +4,8 @@ info:
   version: 1.0.0
   description: Unified Swagger entrypoint for AssetMonitoringSystem microservices.
 servers:
-  - url: http://localhost:8080
-    description: Local API Gateway
+  - url: /
+    description: ECS Application Load Balancer
 security:
   - bearerAuth: []
 tags:
@@ -16,16 +16,16 @@ tags:
   - name: Audit
   - name: Notification
 paths:
-  /api/v1/identity/auth/login:
-    $ref: ./specs/identity.yaml#/paths/~1api~1v1~1identity~1auth~1login
-  /api/v1/identity/users:
-    $ref: ./specs/identity.yaml#/paths/~1api~1v1~1identity~1users
-  /api/v1/identity/users/{user}:
-    $ref: ./specs/identity.yaml#/paths/~1api~1v1~1identity~1users~1{user}
-  /api/v1/identity/employees:
-    $ref: ./specs/identity.yaml#/paths/~1api~1v1~1identity~1employees
-  /api/v1/identity/employees/{employee}:
-    $ref: ./specs/identity.yaml#/paths/~1api~1v1~1identity~1employees~1{employee}
+  /api/v1/auth/login:
+    $ref: ./specs/identity.yaml#/paths/~1api~1v1~1auth~1login
+  /api/v1/users:
+    $ref: ./specs/identity.yaml#/paths/~1api~1v1~1users
+  /api/v1/users/{user}:
+    $ref: ./specs/identity.yaml#/paths/~1api~1v1~1users~1{user}
+  /api/v1/employees:
+    $ref: ./specs/identity.yaml#/paths/~1api~1v1~1employees
+  /api/v1/employees/{employee}:
+    $ref: ./specs/identity.yaml#/paths/~1api~1v1~1employees~1{employee}
   /api/v1/inventory/assets:
     $ref: ./specs/inventory.yaml#/paths/~1api~1v1~1inventory~1assets
   /api/v1/inventory/assets/{asset}:
