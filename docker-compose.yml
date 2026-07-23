@@ -4,6 +4,7 @@ services:
   gateway:
     image: nginx:1.27-alpine
     container_name: asset_monitoring_system-gateway
+    restart: unless-stopped
     depends_on:
       - identity-service
       - inventory-service
@@ -172,6 +173,7 @@ services:
       args:
         SERVICE_DIR: services/identity-service
     container_name: asset_monitoring_system-identity-service
+    restart: unless-stopped
     depends_on:
       identity-db:
         condition: service_healthy
@@ -212,6 +214,7 @@ services:
       args:
         SERVICE_DIR: services/inventory-service
     container_name: asset_monitoring_system-inventory-service
+    restart: unless-stopped
     depends_on:
       inventory-db:
         condition: service_healthy
@@ -251,6 +254,7 @@ services:
       args:
         SERVICE_DIR: services/assignment-service
     container_name: asset_monitoring_system-assignment-service
+    restart: unless-stopped
     depends_on:
       assignment-db:
         condition: service_healthy
@@ -290,7 +294,6 @@ services:
       - asset_monitoring_system
 
   assignment-user-sync-worker:
-    profiles: ["workers"]
     restart: unless-stopped
     container_name: asset_monitoring_system-assignment-user-sync-worker
     image: asset_monitoring_system-assignment-user-sync-worker
@@ -308,6 +311,7 @@ services:
     environment:
       APP_ENV: local
       APP_DEBUG: "true"
+      RUN_MIGRATIONS: "false"
       DB_CONNECTION: pgsql
       DB_HOST: assignment-db
       DB_PORT: 5432
@@ -338,6 +342,7 @@ services:
       args:
         SERVICE_DIR: services/health-monitor-service
     container_name: asset_monitoring_system-health-monitor-service
+    restart: unless-stopped
     depends_on:
       health-monitor-db:
         condition: service_healthy
@@ -378,6 +383,7 @@ services:
       args:
         SERVICE_DIR: services/audit-service
     container_name: asset_monitoring_system-audit-service
+    restart: unless-stopped
     depends_on:
       audit-db:
         condition: service_healthy
@@ -411,7 +417,6 @@ services:
       - asset_monitoring_system
 
   audit-consumer-worker:
-    profiles: ["workers"]
     restart: unless-stopped
     container_name: asset_monitoring_system-audit-consumer-worker
     image: asset_monitoring_system-audit-consumer-worker
@@ -429,6 +434,7 @@ services:
     environment:
       APP_ENV: local
       APP_DEBUG: "true"
+      RUN_MIGRATIONS: "false"
       DB_CONNECTION: pgsql
       DB_HOST: audit-db
       DB_PORT: 5432
@@ -455,6 +461,7 @@ services:
       args:
         SERVICE_DIR: services/notification-service
     container_name: asset_monitoring_system-notification-service
+    restart: unless-stopped
     depends_on:
       notification-db:
         condition: service_healthy
@@ -494,7 +501,6 @@ services:
       - asset_monitoring_system
 
   notification-consumer-worker:
-    profiles: ["workers"]
     restart: unless-stopped
     container_name: asset_monitoring_system-notification-consumer-worker
     image: asset_monitoring_system-notification-consumer-worker
@@ -514,6 +520,7 @@ services:
     environment:
       APP_ENV: local
       APP_DEBUG: "true"
+      RUN_MIGRATIONS: "false"
       DB_CONNECTION: pgsql
       DB_HOST: notification-db
       DB_PORT: 5432
@@ -540,7 +547,6 @@ services:
       - asset_monitoring_system
 
   health-monitor-scanner:
-    profiles: ["workers"]
     restart: unless-stopped
     container_name: asset_monitoring_system-health-monitor-scanner
     image: asset_monitoring_system-health-monitor-scanner
@@ -561,6 +567,7 @@ services:
     environment:
       APP_ENV: local
       APP_DEBUG: "true"
+      RUN_MIGRATIONS: "false"
       DB_CONNECTION: pgsql
       DB_HOST: health-monitor-db
       DB_PORT: 5432

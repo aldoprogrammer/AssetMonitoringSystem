@@ -1,6 +1,6 @@
 # Asset Monitoring System
 
-AssetMonitoringSystem is a production-oriented Laravel 11 microservices system for enterprise IT asset management. It uses a six-service architecture, RabbitMQ topic messaging, PostgreSQL per service, Docker multi-stage builds, an Nginx API gateway, and Terraform for AWS provisioning.
+AssetMonitoringSystem is a production-oriented Laravel 12 microservices system for enterprise IT asset management. It uses a six-service architecture, RabbitMQ topic messaging, PostgreSQL per service, Docker multi-stage builds, an Nginx API gateway, and Terraform for AWS provisioning.
 
 ## 📋 Table of Contents
 
@@ -22,6 +22,8 @@ AssetMonitoringSystem is a production-oriented Laravel 11 microservices system f
 - [☁️ Terraform](#terraform)
 - [🛠️ Operational Notes](#operational-notes)
 - [☸️ Kubernetes](#kubernetes)
+
+
 
 ## 🏗️ Architecture
 
@@ -72,6 +74,8 @@ AssetMonitoringSystem is a production-oriented Laravel 11 microservices system f
                     └──────────────────────────────────────┘
 ```
 
+
+
 ## 🧩 System Design
 
 The system is designed as a modular microservices platform where each bounded context owns its own data, HTTP API, and async event responsibilities. Synchronous flows go through the gateway and internal REST calls, while cross-service propagation happens through RabbitMQ events so downstream consumers can stay decoupled.
@@ -87,20 +91,24 @@ This gives the project a clean separation between identity, inventory, assignmen
 - Public resource lookup by UUID instead of leaking internal numeric IDs
 - Local-first developer tooling with Docker Compose, Swagger, Telescope, and Kubernetes support
 
+
+
 ## 📦 Microservices Overview
 
 - `identity-service`
-  Handles authentication, Passport token issuance, employees, users, and `user.*` events.
+Handles authentication, Passport token issuance, employees, users, and `user.*` events.
 - `inventory-service`
-  Owns IT asset records, asset availability checks, and asset lookup endpoints.
+Owns IT asset records, asset availability checks, and asset lookup endpoints.
 - `assignment-service`
-  Handles checkout/checkin, local user projection, and inventory circuit breaker logic.
+Handles checkout/checkin, local user projection, and inventory circuit breaker logic.
 - `health-monitor-service`
-  Stores device heartbeats and detects inactive devices.
+Stores device heartbeats and detects inactive devices.
 - `audit-service`
-  Consumes platform events and stores immutable audit logs.
+Consumes platform events and stores immutable audit logs.
 - `notification-service`
-  Consumes relevant events and sends email or Slack-style notifications.
+Consumes relevant events and sends email or Slack-style notifications.
+
+
 
 ## 🔗 Service Dependencies Map
 
@@ -132,6 +140,8 @@ RabbitMQ topic exchange
   +--> health-monitor-scanner
 ```
 
+
+
 ### Service Interaction Flow
 
 ```text
@@ -151,6 +161,8 @@ Swagger UI ──► Nginx Gateway ──► All HTTP API Services
 Mailpit  ◄──────────────────── Notification Service
 ```
 
+
+
 ## 🎯 Prerequisites
 
 Before you begin, make sure you understand both:
@@ -162,44 +174,60 @@ That way the setup section is not just “what to install”, but also “what t
 
 ### Core Project Stack
 
-| Technology | Version | Role In This Project | Notes |
-| --- | --- | --- | --- |
-| PHP | 8.3 | Runtime for all Laravel microservices | Runs inside the service containers |
-| Laravel | 11 | Main application framework | Used by all six backend services |
-| Laravel Passport | Current project dependency | OAuth / API token issuance | Used by `identity-service` |
-| Laravel Telescope | Current project dependency | Local observability and request inspection | Enabled in local development |
-| PostgreSQL | 16 | Primary database engine | One database per service |
-| RabbitMQ | 3.13 | Message broker | Used for async event-driven communication |
-| Nginx | 1.27 | API gateway / reverse proxy | Routes requests to the correct service |
-| Swagger UI / OpenAPI | Swagger UI v5 + OpenAPI YAML | API documentation and manual endpoint testing | Available through the local docs UI |
-| Mailpit | v1.21 | Local email testing inbox | Captures notification emails in development |
-| Terraform | 1.x | Infrastructure as code | Used for the AWS-oriented environment under `terraform/` |
-| Kubernetes | Local cluster compatible | Container orchestration option | Supported through manifests in `kubernetes/base` |
+
+| Technology           | Version                      | Role In This Project                          | Notes                                                    |
+| -------------------- | ---------------------------- | --------------------------------------------- | -------------------------------------------------------- |
+| PHP                  | 8.3                          | Runtime for all Laravel microservices         | Runs inside the service containers                       |
+| Laravel              | 11                           | Main application framework                    | Used by all six backend services                         |
+| Laravel Passport     | Current project dependency   | OAuth / API token issuance                    | Used by `identity-service`                               |
+| Laravel Telescope    | Current project dependency   | Local observability and request inspection    | Enabled in local development                             |
+| PostgreSQL           | 16                           | Primary database engine                       | One database per service                                 |
+| RabbitMQ             | 3.13                         | Message broker                                | Used for async event-driven communication                |
+| Nginx                | 1.27                         | API gateway / reverse proxy                   | Routes requests to the correct service                   |
+| Swagger UI / OpenAPI | Swagger UI v5 + OpenAPI YAML | API documentation and manual endpoint testing | Available through the local docs UI                      |
+| Mailpit              | v1.21                        | Local email testing inbox                     | Captures notification emails in development              |
+| Terraform            | 1.x                          | Infrastructure as code                        | Used for the AWS-oriented environment under `terraform/` |
+| Kubernetes           | Local cluster compatible     | Container orchestration option                | Supported through manifests in `kubernetes/base`         |
+
+
+
 
 ### Required Software
 
-| Software | Recommended Version | Purpose | Download / Notes |
-| --- | --- | --- | --- |
-| Docker Desktop | Latest stable with Compose v2 | Runs the full local stack, including API services, PostgreSQL, RabbitMQ, Mailpit, and Swagger UI | https://www.docker.com/products/docker-desktop |
-| Docker Compose | v2.x | Builds and orchestrates the local multi-container environment | Included with Docker Desktop |
-| Git | Latest stable | Clones the repository and helps manage changes locally | https://git-scm.com/downloads |
-| PowerShell | 7.x or Windows PowerShell 5.1+ | Runs the project helper scripts and PowerShell API commands used in the README | Included on Windows, or install PowerShell 7 from Microsoft |
+
+| Software       | Recommended Version            | Purpose                                                                                          | Download / Notes                                                                                 |
+| -------------- | ------------------------------ | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------ |
+| Docker Desktop | Latest stable with Compose v2  | Runs the full local stack, including API services, PostgreSQL, RabbitMQ, Mailpit, and Swagger UI | [https://www.docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop) |
+| Docker Compose | v2.x                           | Builds and orchestrates the local multi-container environment                                    | Included with Docker Desktop                                                                     |
+| Git            | Latest stable                  | Clones the repository and helps manage changes locally                                           | [https://git-scm.com/downloads](https://git-scm.com/downloads)                                   |
+| PowerShell     | 7.x or Windows PowerShell 5.1+ | Runs the project helper scripts and PowerShell API commands used in the README                   | Included on Windows, or install PowerShell 7 from Microsoft                                      |
+
+
+
 
 ### Optional Software
 
-| Software | Recommended Version | Purpose | Download / Notes |
-| --- | --- | --- | --- |
-| kubectl | v1.30+ | Applies and manages the Kubernetes manifests in `kubernetes/base` | https://kubernetes.io/docs/tasks/tools/ |
-| Docker Desktop Kubernetes | Enabled in Docker Desktop | Runs the project on a local Kubernetes cluster without installing Minikube or Kind | Docker Desktop -> Settings -> Kubernetes |
-| Terraform | v1.6+ | Applies the AWS-focused infrastructure in `terraform/environments/dev` | https://developer.hashicorp.com/terraform/downloads |
+
+| Software                  | Recommended Version       | Purpose                                                                            | Download / Notes                                                                                           |
+| ------------------------- | ------------------------- | ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| kubectl                   | v1.30+                    | Applies and manages the Kubernetes manifests in `kubernetes/base`                  | [https://kubernetes.io/docs/tasks/tools/](https://kubernetes.io/docs/tasks/tools/)                         |
+| Docker Desktop Kubernetes | Enabled in Docker Desktop | Runs the project on a local Kubernetes cluster without installing Minikube or Kind | Docker Desktop -> Settings -> Kubernetes                                                                   |
+| Terraform                 | v1.6+                     | Applies the AWS-focused infrastructure in `terraform/environments/dev`             | [https://developer.hashicorp.com/terraform/downloads](https://developer.hashicorp.com/terraform/downloads) |
+
+
+
 
 ### Access Requirements
 
-| Requirement | Why It Is Needed |
-| --- | --- |
-| Internet access during the first build | Each image scaffolds Laravel and installs Composer dependencies during the initial Docker build |
-| Available local ports | Docker uses `8080`, `8081`, `15672`, `8025`, `1025`, and `54321`-`54326`; Kubernetes port-forward examples use `9080` and `9081` |
-| Sufficient disk space and RAM | The stack includes multiple Laravel services, six PostgreSQL containers, RabbitMQ, Mailpit, Swagger UI, and optional Kubernetes workloads |
+
+| Requirement                            | Why It Is Needed                                                                                                                          |
+| -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Internet access during the first build | Each image scaffolds Laravel and installs Composer dependencies during the initial Docker build                                           |
+| Available local ports                  | Docker uses `8080`, `8081`, `15672`, `8025`, `1025`, and `54321`-`54326`; Kubernetes port-forward examples use `9080` and `9081`          |
+| Sufficient disk space and RAM          | The stack includes multiple Laravel services, six PostgreSQL containers, RabbitMQ, Mailpit, Swagger UI, and optional Kubernetes workloads |
+
+
+
 
 ### Important Clarification
 
@@ -217,6 +245,8 @@ You only need host-level installation of those tools if you intentionally want t
 - `health-monitor-service`: telemetry heartbeat ingestion and inactive device detection.
 - `audit-service`: centralized event audit trail consumer.
 - `notification-service`: email and Slack notifications for assignment and health events.
+
+
 
 ## Repository Layout
 
@@ -247,18 +277,24 @@ You only need host-level installation of those tools if you intentionally want t
 Each service folder contains:
 
 - `manifest.env`: build-time package requirements.
-- `overlay/`: Laravel application files copied into a fresh Laravel 11 project during Docker build.
+- `overlay/`: Laravel application files copied into a fresh Laravel 12 project during Docker build.
 - `overlay/app`: Controllers, Services, Repositories, Models, infrastructure code.
 - `overlay/database`: migrations and seeders.
 - `overlay/routes`: service routes.
 - `overlay/tests`: PHPUnit examples for critical flows.
 
+
+
 ## Local Run With Docker
+
+
 
 ### Prerequisites
 
 - Docker Desktop or Docker Engine with Compose v2
-- Internet access during the first build, because each image scaffolds Laravel 11 and installs Composer packages inside the container build
+- Internet access during the first build, because each image scaffolds Laravel 12 and installs Composer packages inside the container build
+
+
 
 ### 1. Build Images
 
@@ -266,20 +302,7 @@ Each service folder contains:
 docker compose build
 ```
 
-For day-to-day development, source code and tests are bind-mounted into the PHP containers through `docker-compose.override.yml`. That means normal changes in `services/*/overlay/app`, `config`, `database`, `routes`, `tests`, and `resources` are live without rebuilding the image.
-
-Because the services run as long-lived PHP HTTP processes inside containers, changes to `routes`, `bootstrap`, auth wiring, and some config may still require a service restart or recreate before the HTTP endpoint behavior catches up:
-
-```bash
-docker compose restart identity-service inventory-service assignment-service
-```
-
-If the change affects mounted files plus the container definition itself, use:
-
-```bash
-docker compose up -d --force-recreate
-docker compose --profile workers up -d --force-recreate
-```
+For day-to-day development, `docker-compose.override.yml` mounts each service `overlay/` into the container. The entrypoint continuously syncs that overlay into the app tree, so changes under `services/*/overlay/app`, `config`, `database`, `routes`, `tests`, and `resources` are live without rebuilding or restarting.
 
 Rebuild the images only when you change:
 
@@ -295,60 +318,25 @@ docker compose down -v
 docker compose build --no-cache
 ```
 
-Telescope is installed as a dev dependency in every Laravel service. After pulling these changes, rebuild once so the package is present inside the containers:
 
-```bash
-docker compose build --no-cache
-docker compose up -d
-docker compose --profile workers up -d
-```
 
-### 2. Start Core Infrastructure And APIs
+### 2. Start The Stack
 
-This starts the gateway, RabbitMQ, Mailpit, all PostgreSQL instances, and all HTTP API containers.
+This starts the gateway, RabbitMQ, Mailpit, all PostgreSQL instances, all HTTP API containers, and all background workers.
 
 ```bash
 docker compose up -d
 ```
 
-### 3. Run Database Migrations
+On startup each service automatically:
 
-Run these once after the containers are up:
+- syncs its mounted overlay
+- runs migrations
+- for `identity-service`: seeds the admin user, generates Passport keys if missing, and ensures a personal access client exists
 
-```bash
-docker compose exec identity-service php artisan migrate --seed --force
-docker compose exec identity-service php artisan passport:install --force --no-interaction
+No separate migrate / seed / `passport:install` / worker-profile commands are required for local Docker.
 
-docker compose exec inventory-service php artisan migrate --force
-docker compose exec assignment-service php artisan migrate --force
-docker compose exec health-monitor-service php artisan migrate --force
-docker compose exec audit-service php artisan migrate --force
-docker compose exec notification-service php artisan migrate --force
-```
-
-Notes:
-
-- `identity-service` seeds an initial admin user.
-- `passport:install` creates the encryption keys and personal access client required by Laravel Passport token issuance.
-- Run `passport:install` only once per fresh identity database. Re-running it will generate new Passport clients again.
-- These migrations also create the Telescope tables and the web `sessions` table used by each Telescope dashboard.
-
-### 4. Start Background Workers
-
-Workers are intentionally behind a Compose profile so they do not race the initial migrations.
-
-```bash
-docker compose --profile workers up -d
-```
-
-This starts:
-
-- `assignment-user-sync-worker`
-- `audit-consumer-worker`
-- `notification-consumer-worker`
-- `health-monitor-scanner`
-
-### 5. Verify The Stack
+### 3. Verify The Stack
 
 Endpoints:
 
@@ -372,7 +360,16 @@ Default RabbitMQ credentials:
 - password: `asset_monitoring_system`
 - Local Docker leaves `SLACK_WEBHOOK_URL` empty by default, so notification smoke tests use Mailpit email without trying to call an external Slack webhook.
 
-### 6. Stop Everything
+Workers started with the stack:
+
+- `assignment-user-sync-worker`
+- `audit-consumer-worker`
+- `notification-consumer-worker`
+- `health-monitor-scanner`
+
+
+
+### 4. Stop Everything
 
 ```bash
 docker compose down
@@ -384,25 +381,20 @@ To also remove databases:
 docker compose down -v
 ```
 
-### 7. Restart Everything
+
+
+### 5. Restart Everything
 
 ```bash
 docker compose up -d
-docker compose --profile workers up -d
 docker compose ps
-
 ```
 
-### 8. Fast Dev Workflow
 
-If you only changed PHP code, routes, config, tests, or Blade/resources:
 
-```bash
-docker compose up -d
-docker compose --profile workers up -d
-```
+### 6. Fast Dev Workflow
 
-Then just rerun the command you need, for example:
+If you only changed PHP code, routes, config, tests, or Blade/resources under `services/*/overlay`, save the file and use the API or tests immediately. No rebuild and no container restart.
 
 ```bash
 docker compose exec identity-service php artisan test
@@ -421,8 +413,8 @@ If you changed Docker/scaffolding/dependencies:
 ```bash
 docker compose build --no-cache
 docker compose up -d --force-recreate
-docker compose --profile workers up -d --force-recreate
 ```
+
 
 
 ## Seeded Credentials
@@ -432,7 +424,11 @@ After running `identity-service` migrations and seeder:
 - email: `admin@assetmonitoringsystem.local`
 - password: `AdminPass123!`
 
+
+
 ## Sample API Calls
+
+
 
 ### Login
 
@@ -449,6 +445,8 @@ You can also exercise the APIs in Swagger UI at `http://localhost:8081`.
 - Click `Authorize` in Swagger UI and paste only the raw `access_token`.
 - Swagger UI will automatically send it as `Authorization: Bearer <access_token>`.
 
+
+
 ### Create An Asset
 
 ```bash
@@ -462,6 +460,8 @@ curl --request POST http://localhost:8080/api/v1/inventory/assets \
   }'
 ```
 
+
+
 ### Check Out An Asset
 
 ```bash
@@ -472,6 +472,8 @@ curl --request POST http://localhost:8080/api/v1/assignments/checkout \
     "asset_serial_number":"LAP-1001"
   }'
 ```
+
+
 
 ### Post Device Heartbeat
 
@@ -484,7 +486,11 @@ curl --request POST http://localhost:8080/api/v1/health/heartbeats \
   }'
 ```
 
+
+
 ## Message Flow
+
+
 
 ### Identity To Assignment
 
@@ -494,11 +500,15 @@ curl --request POST http://localhost:8080/api/v1/health/heartbeats \
 4. The consumer stores the latest user projection locally.
 5. Assignment check-out uses the local projection and validates the asset through `inventory-service`.
 
+
+
 ### Assignment To Audit And Notifications
 
 1. `assignment-service` publishes `assignment.checked_out` or `assignment.checked_in`.
 2. `audit-consumer-worker` stores an immutable audit record.
 3. `notification-consumer-worker` sends email and Slack notifications.
+
+
 
 ### Health Alerts
 
@@ -506,6 +516,8 @@ curl --request POST http://localhost:8080/api/v1/health/heartbeats \
 2. `health-monitor-scanner` detects inactive devices.
 3. The scanner publishes `health.device_inactive`.
 4. Audit and notification workers consume the event.
+
+
 
 ## Circuit Breaker
 
@@ -521,6 +533,8 @@ Code reference:
 
 - `services/assignment-service/overlay/app/Support/CircuitBreaker/CircuitBreaker.php`
 - `services/assignment-service/overlay/app/Support/Inventory/InventoryClient.php`
+
+
 
 ## Testing
 
@@ -545,6 +559,8 @@ docker compose exec health-monitor-service php artisan test
 docker compose exec audit-service php artisan test
 docker compose exec notification-service php artisan test
 ```
+
+
 
 ## Swagger / OpenAPI
 
@@ -571,27 +587,21 @@ Included specs:
 - Audit Service
 - Notification Service
 
+
+
 ## Telescope
 
 Each Laravel service includes Telescope in local development so you can inspect request timing, queries, exceptions, cache activity, jobs, and outbound mail while exercising the APIs.
 
 Setup checklist:
 
-```bash
-docker compose exec identity-service php artisan migrate --force
-docker compose exec inventory-service php artisan migrate --force
-docker compose exec assignment-service php artisan migrate --force
-docker compose exec health-monitor-service php artisan migrate --force
-docker compose exec audit-service php artisan migrate --force
-docker compose exec notification-service php artisan migrate --force
-```
+Telescope tables are created automatically by the local container entrypoint migrations. After `docker compose up -d`, open the dashboards below.
 
 If you changed `docker/scaffold-service.sh`, `docker/service.Dockerfile`, or Composer dependencies, rebuild once:
 
 ```bash
 docker compose build --no-cache
 docker compose up -d --force-recreate
-docker compose --profile workers up -d --force-recreate
 ```
 
 Dashboards:
@@ -620,6 +630,8 @@ Then call a few API endpoints from Swagger or PowerShell and open the matching T
 - cache activity
 - mail events in notification-service
 
+
+
 ## Terraform
 
 Terraform files live in `terraform/environments/dev`.
@@ -633,20 +645,21 @@ cd terraform/environments/dev
 cp terraform.tfvars.example terraform.tfvars
 ```
 
-2. Edit `terraform.tfvars` with your AWS VPC, subnet, security group, and secrets.
-
-3. Initialize and review the plan:
+1. Edit `terraform.tfvars` with your AWS VPC, subnet, security group, and secrets.
+2. Initialize and review the plan:
 
 ```bash
 terraform init
 terraform plan
 ```
 
-4. Apply:
+1. Apply:
 
 ```bash
 terraform apply
 ```
+
+
 
 ### Provisioned AWS Resources
 
@@ -658,6 +671,8 @@ terraform apply
   - elevated 5xx error rate
   - queue lag / backlog
 
+
+
 ## Operational Notes
 
 - Local Docker Compose is intended for development and integration testing.
@@ -665,6 +680,8 @@ terraform apply
 - Service logs are structured for aggregation into CloudWatch when deployed on AWS.
 - Consumers use `processed_messages` tables for idempotency.
 - The monorepo intentionally keeps each service independent at the database and event-consumer level.
+
+
 
 ## Kubernetes
 
@@ -683,6 +700,8 @@ For this project, the recommended local cluster is Docker Desktop Kubernetes. It
 - ingress resources for API and Swagger hosts
 - bootstrap jobs for database migrations
 - identity bootstrap job for Passport keys and personal access client setup
+
+
 
 ### Recommended Local Setup
 
@@ -705,6 +724,8 @@ That script:
 - builds the local images if you ask it to
 - applies `kubernetes/base`
 - shows jobs, pods, and services in the `asset-monitoring-system` namespace
+
+
 
 ### Local Image Strategy
 
@@ -755,6 +776,8 @@ powershell -ExecutionPolicy Bypass -File .\scripts\k8s-up.ps1
 powershell -ExecutionPolicy Bypass -File .\scripts\k8s-status.ps1
 ```
 
+
+
 ### Access The Stack
 
 If you have an NGINX ingress controller installed, add these hosts locally:
@@ -786,6 +809,8 @@ Then open:
 - Kubernetes gateway: `http://localhost:9080`
 - Kubernetes Swagger UI: `http://localhost:9081`
 
+
+
 ### Operational Notes
 
 - `identity-service` uses a dedicated PVC mounted at `/var/www/app/storage` so Passport keys survive pod restarts.
@@ -798,3 +823,4 @@ copy gateway\nginx.conf kubernetes\base\files\nginx.conf /Y
 copy api-docs\index.yaml kubernetes\base\files\swagger-specs\index.yaml /Y
 copy api-docs\specs\*.yaml kubernetes\base\files\swagger-specs\ /Y
 ```
+

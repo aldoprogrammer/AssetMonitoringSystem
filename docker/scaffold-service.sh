@@ -13,9 +13,12 @@ fi
 # shellcheck disable=SC1090
 . "${MANIFEST_FILE}"
 
-composer create-project laravel/laravel "${TARGET_DIR}" "^11.0" --prefer-dist --no-interaction
+# Laravel 11.x is blocked by Packagist security advisories; use Laravel 12 (>=12.61.1).
+composer create-project laravel/laravel "${TARGET_DIR}" "^12.0" --prefer-dist --no-interaction
 
 cd "${TARGET_DIR}"
+
+composer require --no-interaction --no-progress "laravel/framework:^12.61.1"
 
 # Remove Laravel's default user migration so each service can own its schema.
 rm -f database/migrations/*_create_users_table.php
@@ -202,4 +205,5 @@ if [ "${PASSPORT_ENABLED:-false}" = "true" ]; then
   php artisan vendor:publish --provider="Laravel\\Passport\\PassportServiceProvider" --tag=migrations --force || true
 fi
 
-composer dump-autoload --optimize
+# Avoid an authoritative optimized classmap so bind-synced overlay classes resolve via PSR-4.
+composer dump-autoload
