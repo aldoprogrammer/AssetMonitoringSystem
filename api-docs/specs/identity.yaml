@@ -3,7 +3,8 @@ info:
   title: AssetMonitoringSystem Identity Service
   version: 1.0.0
 servers:
-  - url: /
+  - url: http://localhost:8080
+    description: Local Docker API gateway
 paths:
   /api/v1/auth/login:
     post:

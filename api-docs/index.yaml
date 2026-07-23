@@ -4,8 +4,8 @@ info:
   version: 1.0.0
   description: Unified Swagger entrypoint for AssetMonitoringSystem microservices.
 servers:
-  - url: /
-    description: ECS Application Load Balancer
+  - url: http://localhost:8080
+    description: Local Docker API gateway
 security:
   - bearerAuth: []
 tags:

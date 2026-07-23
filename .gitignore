@@ -35,4 +35,3 @@ terraform-outputs.json
 
 # Docker & Temporary
 .docker-build-cache/
-docker-compose.override.yml

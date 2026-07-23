@@ -3,6 +3,7 @@
 namespace App\Infrastructure\Messaging;
 
 use PhpAmqpLib\Connection\AMQPStreamConnection;
+use PhpAmqpLib\Exception\AMQPIOException;
 use PhpAmqpLib\Message\AMQPMessage;
 use Throwable;
 
@@ -11,13 +12,7 @@ class TopicConsumer
     public function consume(string $consumerName, array $bindingKeys, callable $handler): void
     {
         $config = config('services.rabbitmq');
-        $connection = new AMQPStreamConnection(
-            $config['host'],
-            (int) $config['port'],
-            $config['user'],
-            $config['password'],
-            $config['vhost'],
-        );
+        $connection = $this->connectWithRetry($config);
 
         $channel = $connection->channel();
         $channel->exchange_declare($config['exchange'], 'topic', false, true, false);
@@ -45,6 +40,32 @@ class TopicConsumer
 
         while ($channel->is_consuming()) {
             $channel->wait();
+        }
+    }
+
+    private function connectWithRetry(array $config): AMQPStreamConnection
+    {
+        $attempts = 0;
+        $maxAttempts = 30;
+
+        while (true) {
+            try {
+                return new AMQPStreamConnection(
+                    $config['host'],
+                    (int) $config['port'],
+                    $config['user'],
+                    $config['password'],
+                    $config['vhost'],
+                );
+            } catch (AMQPIOException $exception) {
+                $attempts++;
+
+                if ($attempts >= $maxAttempts) {
+                    throw $exception;
+                }
+
+                sleep(2);
+            }
         }
     }
 }
